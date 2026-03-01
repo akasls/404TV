@@ -27,12 +27,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/akasls/lunatv-sqlite
+          images: ghcr.io/akasls/404tv
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/akasls/lunatv-sqlite:latest
+          tags: ghcr.io/akasls/404tv:latest
           labels: ${{ steps.meta.outputs.labels }}

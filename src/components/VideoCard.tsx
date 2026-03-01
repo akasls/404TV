@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any,react-hooks/exhaustive-deps,@typescript-eslint/no-empty-function */
 
-import { ExternalLink, Heart, Link, PlayCircleIcon, Radio, Trash2 } from 'lucide-react';
+import { ExternalLink, Heart, Link, PlayCircleIcon, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, {
@@ -46,7 +46,6 @@ export interface VideoCardProps {
   type?: string;
   isBangumi?: boolean;
   isAggregate?: boolean;
-  origin?: 'vod' | 'live';
 }
 
 export type VideoCardHandle = {
@@ -75,7 +74,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     type = '',
     isBangumi = false,
     isAggregate = false,
-    origin = 'vod',
   }: VideoCardProps,
   ref
 ) {
@@ -223,11 +221,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   );
 
   const handleClick = useCallback(() => {
-    if (origin === 'live' && actualSource && actualId) {
-      // 直播内容跳转到直播页面
-      const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
-      router.push(url);
-    } else if (from === 'douban' || (isAggregate && !actualSource && !actualId)) {
+    if (from === 'douban' || (isAggregate && !actualSource && !actualId)) {
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}`;
       router.push(url);
@@ -240,7 +234,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       router.push(url);
     }
   }, [
-    origin,
     from,
     actualSource,
     actualId,
@@ -254,11 +247,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
   // 新标签页播放处理函数
   const handlePlayInNewTab = useCallback(() => {
-    if (origin === 'live' && actualSource && actualId) {
-      // 直播内容跳转到直播页面
-      const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
-      window.open(url, '_blank');
-    } else if (from === 'douban' || (isAggregate && !actualSource && !actualId)) {
+    if (from === 'douban' || (isAggregate && !actualSource && !actualId)) {
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''}${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}`;
       window.open(url, '_blank');
     } else if (actualSource && actualId) {
@@ -270,7 +259,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       window.open(url, '_blank');
     }
   }, [
-    origin,
     from,
     actualSource,
     actualId,
@@ -367,7 +355,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     if (config.showPlayButton) {
       actions.push({
         id: 'play',
-        label: origin === 'live' ? '观看直播' : '播放',
+        label: '播放',
         icon: <PlayCircleIcon size={20} />,
         onClick: handleClick,
         color: 'primary' as const,
@@ -376,7 +364,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       // 新标签页播放
       actions.push({
         id: 'play-new-tab',
-        label: origin === 'live' ? '新标签页观看' : '新标签页播放',
+        label: '新标签页播放',
         icon: <ExternalLink size={20} />,
         onClick: handlePlayInNewTab,
         color: 'default' as const,
@@ -532,7 +520,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       >
         {/* 海报容器 */}
         <div
-          className={`relative aspect-[2/3] overflow-hidden rounded-lg ${origin === 'live' ? 'ring-1 ring-gray-300/80 dark:ring-gray-600/80' : ''}`}
+          className='relative aspect-[2/3] overflow-hidden rounded-lg'
           style={{
             WebkitUserSelect: 'none',
             userSelect: 'none',
@@ -550,7 +538,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             src={processImageUrl(actualPoster)}
             alt={actualTitle}
             fill
-            className={origin === 'live' ? 'object-contain' : 'object-cover'}
+            className='object-cover'
             referrerPolicy='no-referrer'
             loading='lazy'
             onLoadingComplete={() => setIsLoading(true)}
@@ -1015,9 +1003,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
                   return false;
                 }}
               >
-                {origin === 'live' && (
-                  <Radio size={12} className="inline-block text-gray-500 dark:text-gray-400 mr-1.5" />
-                )}
+
                 {source_name}
               </span>
             </span>
@@ -1036,8 +1022,6 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         isAggregate={isAggregate}
         sourceName={source_name}
         currentEpisode={currentEpisode}
-        totalEpisodes={actualEpisodes}
-        origin={origin}
       />
     </>
   );
