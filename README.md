@@ -23,7 +23,7 @@
 - 🔍 **多源聚合搜索**：一次搜索立刻返回全源结果。
 - 📄 **丰富详情页**：支持剧集列表、演员、年份、简介等完整信息展示。
 - ▶️ **流畅在线播放**：集成 HLS.js & ArtPlayer。
-- ❤️ **收藏 + 继续观看**：支持 Kvrocks/Redis/Upstash 存储，多端同步进度。
+- ❤️ **收藏 + 继续观看**：基于 SQLite 数据库本地持久化存储，无需额外数据库服务即支持多端进度同步。
 - 📱 **PWA**：离线缓存、安装到桌面/主屏，移动端原生体验。
 - 🌗 **响应式布局**：桌面侧边栏 + 移动底部导航，自适应各种屏幕尺寸。
 - 👿 **智能去广告**：自动跳过视频中的切片广告（实验性）。
@@ -69,199 +69,34 @@
 
 ## 部署
 
-本项目**仅支持 Docker 或其他基于 Docker 的平台** 部署。
+当前版本已完全移除对 Redis/Upstash 的外部依赖，采用极为轻量的 **SQLite** 数据库进行本地持久化，大幅度简化了部署流程。
+本项目**仅推荐使用 Docker** 部署。
 
-### zeabur 一键部署
+### Docker Compose 部署（纯本地 SQLite 保存数据）
 
-点击下方按钮即可一键部署，自动配置 LunaTV + Kvrocks 数据库：
-
-[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/8MPTQU/deploy)
-
-**优势**：
-- ✅ 无需配置，一键启动（自动部署完整环境）
-- ✅ 自动 HTTPS 和全球 CDN 加速
-- ✅ 持久化存储，数据永不丢失
-- ✅ 免费额度足够个人使用
-
-**⚠️ 重要提示**：部署完成后，需要在 Zeabur 中为 LunaTV 服务设置访问域名（Domain）才能在浏览器中访问。详见下方 [设置访问域名](#5-设置访问域名必须) 步骤。
-
-### Kvrocks 存储（推荐）
+1. 在服务器上创建一个空目录（如 `lunatv`），进入该目录。
+2. 创建 `docker-compose.yml` 文件，填入以下内容：
 
 ```yml
 services:
   moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
+    image: ghcr.io/akasls/lunatv-sqlite:latest
     container_name: moontv-core
-    restart: on-failure
+    restart: always
     ports:
       - '3000:3000'
-    environment:
-      - USERNAME=admin
-      - PASSWORD=admin_password
-      - NEXT_PUBLIC_STORAGE_TYPE=kvrocks
-      - KVROCKS_URL=redis://moontv-kvrocks:6666
-    networks:
-      - moontv-network
-    depends_on:
-      - moontv-kvrocks
-  moontv-kvrocks:
-    image: apache/kvrocks
-    container_name: moontv-kvrocks
-    restart: unless-stopped
     volumes:
-      - kvrocks-data:/var/lib/kvrocks
-    networks:
-      - moontv-network
-networks:
-  moontv-network:
-    driver: bridge
-volumes:
-  kvrocks-data:
-```
-
-### Redis 存储（有一定的丢数据风险）
-
-```yml
-services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
-    restart: on-failure
-    ports:
-      - '3000:3000'
+      - ./data:/app/data
     environment:
       - USERNAME=admin
       - PASSWORD=admin_password
-      - NEXT_PUBLIC_STORAGE_TYPE=redis
-      - REDIS_URL=redis://moontv-redis:6379
-    networks:
-      - moontv-network
-    depends_on:
-      - moontv-redis
-  moontv-redis:
-    image: redis:alpine
-    container_name: moontv-redis
-    restart: unless-stopped
-    networks:
-      - moontv-network
-    # 请开启持久化，否则升级/重启后数据丢失
-    volumes:
-      - ./data:/data
-networks:
-  moontv-network:
-    driver: bridge
+      - NEXT_PUBLIC_STORAGE_TYPE=sqlite
+      - DATABASE_URL=file:/app/data/lunatv.db
 ```
 
-### Upstash 存储
-
-1. 在 [upstash](https://upstash.com/) 注册账号并新建一个 Redis 实例，名称任意。
-2. 复制新数据库的 **HTTPS ENDPOINT 和 TOKEN**
-3. 使用如下 docker compose
-```yml
-services:
-  moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
-    container_name: moontv-core
-    restart: on-failure
-    ports:
-      - '3000:3000'
-    environment:
-      - USERNAME=admin
-      - PASSWORD=admin_password
-      - NEXT_PUBLIC_STORAGE_TYPE=upstash
-      - UPSTASH_URL=上面 https 开头的 HTTPS ENDPOINT
-      - UPSTASH_TOKEN=上面的 TOKEN
-```
-
-### ☁️ Zeabur 部署（推荐）
-
-Thanks to @SzeMeng76
-
-Zeabur 是一站式云端部署平台，使用预构建的 Docker 镜像可以快速部署，无需等待构建。
-
-**部署步骤：**
-
-1. **添加 KVRocks 服务**（先添加数据库）
-   - 点击 "Add Service" > "Docker Images"
-   - 输入镜像名称：`apache/kvrocks`
-   - 配置端口：`6666` (TCP)
-   - **记住服务名称**（通常是 `apachekvrocks`）
-   - **配置持久化卷（重要）**：
-     * 在服务设置中找到 "Volumes" 部分
-     * 点击 "Add Volume" 添加新卷
-     * Volume ID: `kvrocks-data`（可自定义，仅支持字母、数字、连字符）
-     * Path: `/var/lib/kvrocks/db`
-     * 保存配置
-
-   > 💡 **重要提示**：持久化卷路径必须设置为 `/var/lib/kvrocks/db`（KVRocks 数据目录），这样配置文件保留在容器内，数据库文件持久化，重启后数据不会丢失！
-
-2. **添加 LunaTV 服务**
-   - 点击 "Add Service" > "Docker Images"
-   - 输入镜像名称：`ghcr.io/moontechlab/lunatv:latest`
-   - 配置端口：`3000` (HTTP)
-
-3. **配置环境变量**
-
-   在 LunaTV 服务的环境变量中添加：
-
-   ```env
-   # 必填：管理员账号
-   USERNAME=admin
-   PASSWORD=your_secure_password
-
-   # 必填：存储配置
-   NEXT_PUBLIC_STORAGE_TYPE=kvrocks
-   KVROCKS_URL=redis://apachekvrocks:6666
-
-   # 可选：站点配置
-   SITE_BASE=https://your-domain.zeabur.app
-   NEXT_PUBLIC_SITE_NAME=LunaTV Enhanced
-   ANNOUNCEMENT=欢迎使用 LunaTV Enhanced Edition
-
-   # 可选：豆瓣代理配置（推荐）
-   NEXT_PUBLIC_DOUBAN_PROXY_TYPE=cmliussss-cdn-tencent
-   NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE=cmliussss-cdn-tencent
-   ```
-
-   **注意**：
-   - 使用服务名称作为主机名：`redis://apachekvrocks:6666`
-   - 如果服务名称不同，请替换为实际名称
-   - 两个服务必须在同一个 Project 中
-
-4. **部署完成**
-   - Zeabur 会自动拉取镜像并启动服务
-   - 等待服务就绪后，需要手动设置访问域名（见下一步）
-
-#### 5. 设置访问域名（必须）
-
-   - 在 LunaTV 服务页面，点击 "Networking" 或 "网络" 标签
-   - 点击 "Generate Domain" 生成 Zeabur 提供的免费域名（如 `xxx.zeabur.app`）
-   - 或者绑定自定义域名：
-     * 点击 "Add Domain" 添加你的域名
-     * 按照提示配置 DNS CNAME 记录指向 Zeabur 提供的目标地址
-   - 设置完域名后即可通过域名访问 LunaTV
-
-6. **绑定自定义域名（可选）**
-   - 在服务设置中点击 "Domains"
-   - 添加你的自定义域名
-   - 配置 DNS CNAME 记录指向 Zeabur 提供的域名
-
-#### 🔄 更新 Docker 镜像
-
-当 Docker 镜像有新版本发布时，Zeabur 不会自动更新。需要手动触发更新。
-
-**更新步骤：**
-
-1. **进入服务页面**
-   - 点击需要更新的服务（LunaTV 或 KVRocks）
-
-2. **重启服务**
-   - 点击 **"服务状态"** 页面，再点击 **"重启当前版本"** 按钮
-   - Zeabur 会自动拉取最新的 `latest` 镜像并重新部署
-
-> 💡 **提示**：
-> - 使用 `latest` 标签时，Restart 会自动拉取最新镜像
-> - 生产环境推荐使用固定版本标签（如 `v5.5.6`）避免意外更新
+3. （可选）如果你希望自定站点名称或代理，请在 `environment` 节点下增加对应的环境变量。
+4. 运行 `docker compose up -d` 启动容器。
+5. 等待容器启动完成后，访问 `http://你的IP:3000` 即可开始使用。所有用户数据、收藏、配置皆会自动保存在同级目录下的 `data/lunatv.db` 文件中。
 
 ## 配置文件
 
@@ -329,11 +164,8 @@ dockge/komodo 等 docker compose UI 也有自动更新功能
 | SITE_BASE                           | 站点 url              |       形如 https://example.com                  | 空                                                                                                                     |
 | NEXT_PUBLIC_SITE_NAME               | 站点名称                                     | 任意字符串                       | MoonTV                                                                                                                     |
 | ANNOUNCEMENT                        | 站点公告                                     | 任意字符串                       | 本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。 |
-| NEXT_PUBLIC_STORAGE_TYPE            | 播放记录/收藏的存储方式                      | redis、kvrocks、upstash | 无默认，必填字段                                                                                                               |
-| KVROCKS_URL                           | kvrocks 连接 url                               | 连接 url                         | 空                                                                                                                         |
-| REDIS_URL                           | redis 连接 url                               | 连接 url                         | 空                                                                                                                         |
-| UPSTASH_URL                         | upstash redis 连接 url                       | 连接 url                         | 空                                                                                                                         |
-| UPSTASH_TOKEN                       | upstash redis 连接 token                     | 连接 token                       | 空                                                                                                                         |
+| NEXT_PUBLIC_STORAGE_TYPE            | 播放记录/收藏的存储方式                      | sqlite (或其他任意非 localstorage 字符串) | 无默认，必填字段                                                                                                               |
+| DATABASE_URL                        | SQLite 数据库文件挂载路径                      | 容器内部文件路径，形如 file:/app/data/lunatv.db | 必填字段，并在 Docker 中将此目录挂载为 Volume                                                                                                                         |
 | NEXT_PUBLIC_SEARCH_MAX_PAGE         | 搜索接口可拉取的最大页数                     | 1-50                             | 5                                                                                                                          |
 | NEXT_PUBLIC_DOUBAN_PROXY_TYPE       | 豆瓣数据源请求方式                           | 见下方                           | direct                                                                                                                     |
 | NEXT_PUBLIC_DOUBAN_PROXY            | 自定义豆瓣数据代理 URL                       | url prefix                       | (空)                                                                                                                       |
