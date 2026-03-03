@@ -50,8 +50,9 @@ ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV DOCKER_ENV=true
 
-# --- 数据库持久化配置 ---
-ENV DATABASE_URL="file:/app/data/lunatv.db"
+# --- 数据库持久化配置默认值 ---
+ENV DATABASE_URL="file:/app/data/404tv.db"
+ENV NEXT_PUBLIC_STORAGE_TYPE="sqlite"
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 VOLUME ["/app/data"]
 
