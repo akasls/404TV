@@ -70,8 +70,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 # 全局安装 prisma CLI 以便在运行时执行 db push，并删除本地损坏的 prisma 代理
 RUN npm install -g prisma@5.21.1 && rm -rf /app/node_modules/prisma
 
-# 切换到非特权用户
-USER nextjs
+# 切换到非特权用户 (为避免 VPS 挂载目录时出现由于 UID 不一致导致的无法写入本地 SQLite 错误，此处保持 root 执行)
+# USER nextjs
 
 EXPOSE 3000
 
