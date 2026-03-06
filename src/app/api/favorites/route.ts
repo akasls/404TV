@@ -120,7 +120,13 @@ export async function POST(request: NextRequest) {
 
     const finalFavorite = {
       ...favorite,
+      source_name: favorite.source_name || '',
+      title: favorite.title || '',
+      year: favorite.year || '',
+      cover: favorite.cover || '',
+      total_episodes: favorite.total_episodes ?? 1,
       save_time: favorite.save_time ?? Date.now(),
+      search_title: favorite.search_title || '',
     } as Favorite;
 
     await db.saveFavorite(authInfo.username, source, id, finalFavorite);

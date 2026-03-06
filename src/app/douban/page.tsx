@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -14,6 +14,7 @@ import {
 } from '@/lib/douban.client';
 import { DoubanItem, DoubanResult } from '@/lib/types';
 
+import CapsuleSwitch from '@/components/CapsuleSwitch';
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import DoubanCustomSelector from '@/components/DoubanCustomSelector';
 import DoubanSelector from '@/components/DoubanSelector';
@@ -21,6 +22,7 @@ import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
 
 function DoubanPageClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [doubanData, setDoubanData] = useState<DoubanItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -681,26 +683,6 @@ function DoubanPageClient() {
     setSelectedWeekday(weekday);
   }, []);
 
-  const getPageTitle = () => {
-    // 根据 type 生成标题
-    return type === 'movie'
-      ? '电影'
-      : type === 'tv'
-        ? '电视剧'
-        : type === 'anime'
-          ? '动漫'
-          : type === 'show'
-            ? '综艺'
-            : '自定义';
-  };
-
-  const getPageDescription = () => {
-    if (type === 'anime' && primarySelection === '每日放送') {
-      return '来自 Bangumi 番组计划的精选内容';
-    }
-    return '来自豆瓣的精选内容';
-  };
-
   const getActivePath = () => {
     const params = new URLSearchParams();
     if (type) params.set('type', type);
@@ -712,17 +694,26 @@ function DoubanPageClient() {
 
   return (
     <PageLayout activePath={getActivePath()}>
-      <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible'>
+      <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible mt-2 sm:mt-0'>
         {/* 页面标题和选择器 */}
         <div className='mb-6 sm:mb-8 space-y-4 sm:space-y-6'>
-          {/* 页面标题 */}
-          <div>
-            <h1 className='text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 dark:text-gray-200'>
-              {getPageTitle()}
-            </h1>
-            <p className='text-sm sm:text-base text-gray-600 dark:text-gray-400'>
-              {getPageDescription()}
-            </p>
+          {/* 大频道切换 */}
+          <div className='flex justify-center sm:justify-start mb-2'>
+            <CapsuleSwitch
+              options={[
+                { label: '电影', value: 'movie' },
+                { label: '剧集', value: 'tv' },
+                { label: '动漫', value: 'anime' },
+                { label: '综艺', value: 'show' },
+                ...(customCategories.length > 0
+                  ? [{ label: '自定义', value: 'custom' }]
+                  : []),
+              ]}
+              active={type}
+              onChange={(val) => {
+                router.push(`/douban?type=${val}`);
+              }}
+            />
           </div>
 
           {/* 选择器组件 */}
