@@ -41,9 +41,6 @@ FROM node:20-alpine AS runner
 
 RUN apk add --no-cache openssl
 
-# 全局安装 prisma CLI 以便在启动时执行数据库推送
-RUN npm install -g prisma
-
 # 创建非 root 用户
 RUN addgroup -g 1001 -S nodejs && adduser -u 1001 -S nextjs -G nodejs
 
@@ -78,4 +75,4 @@ USER nextjs
 EXPOSE 3000
 
 # 启动时执行 prisma 数据库迁移，随后启动应用
-CMD ["sh", "-c", "prisma db push && node start.js"]
+CMD ["sh", "-c", "npx prisma db push && node start.js"]
