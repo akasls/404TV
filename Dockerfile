@@ -64,10 +64,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # 从构建器中复制 scripts 和启动配置
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/start.js ./start.js
-# 从构建器复制 prisma 架构与引擎
+# 从构建器复制 prisma 架构
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+# 全局安装 prisma CLI 以便在运行时执行 db push，并删除本地损坏的 prisma 代理
+RUN npm install -g prisma@5.21.1 && rm -rf /app/node_modules/prisma
 
 # 切换到非特权用户
 USER nextjs
@@ -75,4 +76,4 @@ USER nextjs
 EXPOSE 3000
 
 # 启动时执行 prisma 数据库迁移，随后启动应用
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push && node start.js"]
+CMD ["sh", "-c", "prisma db push && node start.js"]
