@@ -406,6 +406,9 @@ async function handleDatabaseOperationFailure(
   dataType: 'playRecords' | 'favorites' | 'searchHistory',
   error: any
 ): Promise<void> {
+  if (error instanceof Error && error.message.includes('用户未授权')) {
+    return;
+  }
   console.error(`数据库操作失败 (${dataType}):`, error);
   triggerGlobalError(`数据库操作失败`);
 

@@ -42,6 +42,8 @@ interface EpisodeSelectorProps {
   sourceSearchError?: string | null;
   /** 预计算的测速结果，避免重复测速 */
   precomputedVideoInfo?: Map<string, VideoInfo>;
+  videoDetail?: SearchResult | null;
+  videoCover?: string;
 }
 
 /**
@@ -61,6 +63,8 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   sourceSearchLoading = false,
   sourceSearchError = null,
   precomputedVideoInfo,
+  videoDetail,
+  videoCover,
 }) => {
   const router = useRouter();
   const pageCount = Math.ceil(totalEpisodes / episodesPerPage);
@@ -86,9 +90,9 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
     videoInfoMapRef.current = videoInfoMap;
   }, [videoInfoMap]);
 
-  // 主要的 tab 状态：'episodes' 或 'sources'
+  // 主要的 tab 状态：'episodes' 或 'sources' 或 'intro'
   // 当只有一集时默认展示 "换源"，并隐藏 "选集" 标签
-  const [activeTab, setActiveTab] = useState<'episodes' | 'sources'>(
+  const [activeTab, setActiveTab] = useState<'episodes' | 'sources' | 'intro'>(
     totalEpisodes > 1 ? 'episodes' : 'sources'
   );
 
@@ -375,6 +379,17 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
           `.trim()}
         >
           换源
+        </div>
+        <div
+          onClick={() => setActiveTab('intro')}
+          className={`flex-1 py-3 px-6 text-center cursor-pointer transition-all duration-200 font-medium
+            ${activeTab === 'intro'
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-gray-700 hover:text-green-600 bg-black/5 dark:bg-white/5 dark:text-gray-300 dark:hover:text-green-400 hover:bg-black/3 dark:hover:bg-white/3'
+            }
+          `.trim()}
+        >
+          介绍
         </div>
       </div>
 
@@ -675,6 +690,54 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                 </div>
               </div>
             )}
+        </div>
+      )}
+
+      {/* 介绍 Tab 内容 */}
+      {activeTab === 'intro' && (
+        <div className='flex flex-col h-full mt-4 overflow-y-auto pb-4 pr-2'>
+          <div className='flex flex-col gap-4'>
+            {/* 封面展示 */}
+            {videoCover && (
+              <div className='w-full max-w-[200px] mx-auto rounded-xl overflow-hidden shadow-lg border border-white/10'>
+                <img
+                  src={processImageUrl(videoCover)}
+                  alt={videoDetail?.title || videoTitle || '封面'}
+                  className='w-full h-auto object-cover'
+                />
+              </div>
+            )}
+
+            {/* 详细信息 */}
+            <div className='space-y-3 px-2'>
+              <h2 className='text-xl font-bold text-gray-900 dark:text-gray-100 text-center md:text-left'>
+                {videoDetail?.title || videoTitle}
+              </h2>
+
+              <div className='flex justify-center md:justify-start flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400'>
+                {videoDetail?.class && (
+                  <span className='px-2 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded'>
+                    {videoDetail.class}
+                  </span>
+                )}
+                {videoDetail?.year && <span>{videoDetail.year}</span>}
+                {videoDetail?.source_name && (
+                  <span className='border border-gray-500/60 px-2 py-[1px] rounded'>
+                    {videoDetail.source_name}
+                  </span>
+                )}
+                {videoDetail?.type_name && <span>{videoDetail.type_name}</span>}
+              </div>
+
+              {videoDetail?.desc && (
+                <div
+                  className='text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line mt-4'
+                >
+                  {videoDetail.desc}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
