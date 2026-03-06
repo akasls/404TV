@@ -76,4 +76,4 @@ RUN npm install -g prisma@5.21.1 && rm -rf /app/node_modules/prisma
 EXPOSE 3000
 
 # 启动时执行 prisma 数据库迁移，随后启动应用
-CMD ["sh", "-c", "prisma db push && node start.js"]
+CMD ["sh", "-c", "prisma db push --skip-generate && node start.js"]
