@@ -125,11 +125,10 @@ export default function SettingsPage() {
           <nav className='flex space-x-2 overflow-x-auto pb-2 scrollbar-hide border-b border-gray-100 dark:border-gray-800'>
             <button
               onClick={() => setActiveTab('user')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
-                activeTab === 'user'
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'user'
                   ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
                   : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-              }`}
+                }`}
             >
               <UserIcon className='w-5 h-5' />
               用户信息
@@ -137,11 +136,10 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setActiveTab('sources')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
-                activeTab === 'sources'
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'sources'
                   ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
                   : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-              }`}
+                }`}
             >
               <MonitorPlay className='w-5 h-5' />
               视频源
@@ -149,11 +147,10 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setActiveTab('local')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
-                activeTab === 'local'
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'local'
                   ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
                   : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-              }`}
+                }`}
             >
               <SettingsIcon className='w-5 h-5' />
               本地设置
@@ -162,11 +159,10 @@ export default function SettingsPage() {
             {showAdminPanel && (
               <button
                 onClick={() => setActiveTab('system')}
-                className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'system'
+                className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'system'
                     ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
                     : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                }`}
+                  }`}
               >
                 <Shield className='w-5 h-5' />
                 管理员设置
@@ -186,9 +182,7 @@ export default function SettingsPage() {
             {activeTab === 'sources' && <SourceManager />}
             {activeTab === 'local' && <LocalSettings />}
             {activeTab === 'system' && showAdminPanel && (
-              <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-2 sm:p-4'>
-                <SystemSettings />
-              </div>
+              <SystemSettings />
             )}
           </div>
         </div>

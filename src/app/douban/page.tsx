@@ -203,7 +203,7 @@ function DoubanPageClient() {
               : secondarySelection === '全部'
                 ? type
                 : secondarySelection,
-          pageLimit: 24,
+          pageLimit: 30,
           pageStart,
         };
       }
@@ -213,7 +213,7 @@ function DoubanPageClient() {
         kind: type as 'tv' | 'movie',
         category: primarySelection,
         type: secondarySelection,
-        pageLimit: 24,
+        pageLimit: 30,
         pageStart,
       };
     },
@@ -285,7 +285,7 @@ function DoubanPageClient() {
       } else if (type === 'anime') {
         data = await getDoubanRecommends({
           kind: primarySelection === '番剧' ? 'tv' : 'movie',
-          pageLimit: 24,
+          pageLimit: 30,
           pageStart: 0,
           category: '动画',
           format: primarySelection === '番剧' ? '电视剧' : '',
@@ -307,7 +307,7 @@ function DoubanPageClient() {
             type === 'show' || type === 'minitv'
               ? 'tv'
               : (type as 'tv' | 'movie'),
-          pageLimit: 24,
+          pageLimit: 30,
           pageStart: 0, // 初始数据加载始终从第一页开始
           category: multiLevelValues.type
             ? (multiLevelValues.type as string)
@@ -343,7 +343,7 @@ function DoubanPageClient() {
 
         if (isSnapshotEqual(requestSnapshot, currentSnapshot)) {
           setDoubanData(data.list);
-          setActualPageStart(data.nextStart ?? 24);
+          setActualPageStart(data.nextStart ?? 30);
           setHasMore(data.list.length !== 0);
           setLoading(false);
         } else {
@@ -444,7 +444,7 @@ function DoubanPageClient() {
           } else if (type === 'anime') {
             data = await getDoubanRecommends({
               kind: primarySelection === '番剧' ? 'tv' : 'movie',
-              pageLimit: 24,
+              pageLimit: 30,
               pageStart: actualPageStart,
               category: '动画',
               format: primarySelection === '番剧' ? '电视剧' : '',
@@ -470,7 +470,7 @@ function DoubanPageClient() {
                 type === 'show' || type === 'minitv'
                   ? 'tv'
                   : (type as 'tv' | 'movie'),
-              pageLimit: 24,
+              pageLimit: 30,
               pageStart: actualPageStart,
               category: multiLevelValues.type
                 ? (multiLevelValues.type as string)
@@ -512,7 +512,7 @@ function DoubanPageClient() {
 
             if (isSnapshotEqual(requestSnapshot, currentSnapshot)) {
               setDoubanData((prev) => [...prev, ...data.list]);
-              setActualPageStart(data.nextStart ?? (actualPageStart + 24));
+              setActualPageStart(data.nextStart ?? (actualPageStart + 30));
               setHasMore(data.list.length !== 0);
             } else {
               // console.log('参数不一致，不执行任何操作，避免设置过期数据');

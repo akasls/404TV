@@ -2947,18 +2947,16 @@ const VideoSourceConfig = ({
           >
             编辑
           </button>
-          {source.from !== 'config' && (
-            <button
-              onClick={() => handleDelete(source.key)}
-              disabled={isLoading(`deleteSource_${source.key}`)}
-              className={`${buttonStyles.roundedSecondary} ${isLoading(`deleteSource_${source.key}`)
-                ? 'opacity-50 cursor-not-allowed'
-                : ''
-                }`}
-            >
-              删除
-            </button>
-          )}
+          <button
+            onClick={() => handleDelete(source.key)}
+            disabled={isLoading(`deleteSource_${source.key}`)}
+            className={`${buttonStyles.roundedSecondary} ${isLoading(`deleteSource_${source.key}`)
+              ? 'opacity-50 cursor-not-allowed'
+              : ''
+              }`}
+          >
+            删除
+          </button>
         </td>
       </tr>
     );
