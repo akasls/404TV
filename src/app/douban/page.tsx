@@ -23,6 +23,7 @@ function DoubanPageClient() {
   const [doubanData, setDoubanData] = useState<DoubanItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [actualPageStart, setActualPageStart] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectorsReady, setSelectorsReady] = useState(false);
@@ -182,7 +183,7 @@ function DoubanPageClient() {
         snapshot1.selectedWeekday === snapshot2.selectedWeekday &&
         snapshot1.currentPage === snapshot2.currentPage &&
         JSON.stringify(snapshot1.multiLevelSelection) ===
-          JSON.stringify(snapshot2.multiLevelSelection)
+        JSON.stringify(snapshot2.multiLevelSelection)
       );
     },
     []
@@ -200,8 +201,8 @@ function DoubanPageClient() {
             type === 'minitv'
               ? '短剧'
               : secondarySelection === '全部'
-              ? type
-              : secondarySelection,
+                ? type
+                : secondarySelection,
           pageLimit: 24,
           pageStart,
         };
@@ -236,6 +237,7 @@ function DoubanPageClient() {
       // 确保在加载初始数据时重置页面状态
       setDoubanData([]);
       setCurrentPage(0);
+      setActualPageStart(0);
       setHasMore(true);
       setIsLoadingMore(false);
 
@@ -314,10 +316,10 @@ function DoubanPageClient() {
             type === 'show'
               ? '综艺'
               : type === 'minitv'
-              ? '短剧'
-              : type === 'tv'
-              ? '电视剧'
-              : '',
+                ? '短剧'
+                : type === 'tv'
+                  ? '电视剧'
+                  : '',
           region: multiLevelValues.region
             ? (multiLevelValues.region as string)
             : '',
@@ -341,10 +343,11 @@ function DoubanPageClient() {
 
         if (isSnapshotEqual(requestSnapshot, currentSnapshot)) {
           setDoubanData(data.list);
+          setActualPageStart(data.nextStart ?? 24);
           setHasMore(data.list.length !== 0);
           setLoading(false);
         } else {
-          console.log('参数不一致，不执行任何操作，避免设置过期数据');
+          // console.log('参数不一致，不执行任何操作，避免设置过期数据');
         }
         // 如果参数不一致，不执行任何操作，避免设置过期数据
       } else {
@@ -424,8 +427,7 @@ function DoubanPageClient() {
                   ? customFilterMatch.url
                   : secondarySelection;
               const res = await fetch(
-                `/api/videolist?url=${encodeURIComponent(targetUrl)}&pg=${
-                  currentPage + 1
+                `/api/videolist?url=${encodeURIComponent(targetUrl)}&pg=${currentPage + 1
                 }`
               );
               data = await res.json();
@@ -443,7 +445,7 @@ function DoubanPageClient() {
             data = await getDoubanRecommends({
               kind: primarySelection === '番剧' ? 'tv' : 'movie',
               pageLimit: 24,
-              pageStart: currentPage * 24,
+              pageStart: actualPageStart,
               category: '动画',
               format: primarySelection === '番剧' ? '电视剧' : '',
               region: multiLevelValues.region
@@ -469,7 +471,7 @@ function DoubanPageClient() {
                   ? 'tv'
                   : (type as 'tv' | 'movie'),
               pageLimit: 24,
-              pageStart: currentPage * 24,
+              pageStart: actualPageStart,
               category: multiLevelValues.type
                 ? (multiLevelValues.type as string)
                 : '',
@@ -477,10 +479,10 @@ function DoubanPageClient() {
                 type === 'show'
                   ? '综艺'
                   : type === 'minitv'
-                  ? '短剧'
-                  : type === 'tv'
-                  ? '电视剧'
-                  : '',
+                    ? '短剧'
+                    : type === 'tv'
+                      ? '电视剧'
+                      : '',
               region: multiLevelValues.region
                 ? (multiLevelValues.region as string)
                 : '',
@@ -499,7 +501,7 @@ function DoubanPageClient() {
             });
           } else {
             data = await getDoubanCategories(
-              getRequestParams(currentPage * 25)
+              getRequestParams(actualPageStart)
             );
           }
 
@@ -510,9 +512,10 @@ function DoubanPageClient() {
 
             if (isSnapshotEqual(requestSnapshot, currentSnapshot)) {
               setDoubanData((prev) => [...prev, ...data.list]);
+              setActualPageStart(data.nextStart ?? (actualPageStart + 24));
               setHasMore(data.list.length !== 0);
             } else {
-              console.log('参数不一致，不执行任何操作，避免设置过期数据');
+              // console.log('参数不一致，不执行任何操作，避免设置过期数据');
             }
           } else {
             throw new Error(data.message || '获取数据失败');
@@ -575,6 +578,7 @@ function DoubanPageClient() {
         setLoading(true);
         // 立即重置页面状态，防止基于旧状态的请求
         setCurrentPage(0);
+        setActualPageStart(0);
         setDoubanData([]);
         setHasMore(true);
         setIsLoadingMore(false);
@@ -746,24 +750,24 @@ function DoubanPageClient() {
           <div className='justify-start grid grid-cols-3 gap-x-2 gap-y-12 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8 sm:gap-y-20'>
             {loading || !selectorsReady
               ? // 显示骨架屏
-                skeletonData.map((index) => <DoubanCardSkeleton key={index} />)
+              skeletonData.map((index) => <DoubanCardSkeleton key={index} />)
               : // 显示实际数据
-                doubanData.map((item, index) => (
-                  <div key={`${item.title}-${index}`} className='w-full'>
-                    <VideoCard
-                      from='douban'
-                      title={item.title}
-                      poster={item.poster}
-                      douban_id={Number(item.id)}
-                      rate={item.rate}
-                      year={item.year}
-                      type={type === 'movie' ? 'movie' : ''} // 电影类型严格控制，tv 不控
-                      isBangumi={
-                        type === 'anime' && primarySelection === '每日放送'
-                      }
-                    />
-                  </div>
-                ))}
+              doubanData.map((item, index) => (
+                <div key={`${item.title}-${index}`} className='w-full'>
+                  <VideoCard
+                    from='douban'
+                    title={item.title}
+                    poster={item.poster}
+                    douban_id={Number(item.id)}
+                    rate={item.rate}
+                    year={item.year}
+                    type={type === 'movie' ? 'movie' : ''} // 电影类型严格控制，tv 不控
+                    isBangumi={
+                      type === 'anime' && primarySelection === '每日放送'
+                    }
+                  />
+                </div>
+              ))}
           </div>
 
           {/* 加载更多指示器 */}

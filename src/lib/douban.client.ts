@@ -69,8 +69,8 @@ async function fetchWithTimeout(
     proxyUrl === 'https://cors-anywhere.com/'
       ? `${proxyUrl}${url}`
       : proxyUrl
-      ? `${proxyUrl}${encodeURIComponent(url)}`
-      : url;
+        ? `${proxyUrl}${encodeURIComponent(url)}`
+        : url;
 
   const fetchOptions: RequestInit = {
     signal: controller.signal,
@@ -94,12 +94,12 @@ async function fetchWithTimeout(
 
 function getDoubanProxyConfig(): {
   proxyType:
-    | 'direct'
-    | 'cors-proxy-zwei'
-    | 'cmliussss-cdn-tencent'
-    | 'cmliussss-cdn-ali'
-    | 'cors-anywhere'
-    | 'custom';
+  | 'direct'
+  | 'cors-proxy-zwei'
+  | 'cmliussss-cdn-tencent'
+  | 'cmliussss-cdn-ali'
+  | 'cors-anywhere'
+  | 'custom';
   proxyUrl: string;
 } {
   const doubanProxyType =
@@ -147,8 +147,8 @@ export async function fetchDoubanCategories(
   const target = useTencentCDN
     ? `https://m.douban.cmliussss.net/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`
     : useAliCDN
-    ? `https://m.douban.cmliussss.com/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`
-    : `https://m.douban.com/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`;
+      ? `https://m.douban.cmliussss.com/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`
+      : `https://m.douban.com/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`;
 
   try {
     const response = await fetchWithTimeout(
@@ -279,8 +279,8 @@ export async function fetchDoubanList(
   const target = useTencentCDN
     ? `https://movie.douban.cmliussss.net/j/search_subjects?type=${type}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`
     : useAliCDN
-    ? `https://movie.douban.cmliussss.com/j/search_subjects?type=${type}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`
-    : `https://movie.douban.com/j/search_subjects?type=${type}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
+      ? `https://movie.douban.cmliussss.com/j/search_subjects?type=${type}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`
+      : `https://movie.douban.com/j/search_subjects?type=${type}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
 
   try {
     const response = await fetchWithTimeout(
@@ -432,14 +432,13 @@ async function fetchDoubanRecommends(
   const baseUrl = useTencentCDN
     ? `https://m.douban.cmliussss.net/rexxar/api/v2/${kind}/recommend`
     : useAliCDN
-    ? `https://m.douban.cmliussss.com/rexxar/api/v2/${kind}/recommend`
-    : `https://m.douban.com/rexxar/api/v2/${kind}/recommend`;
+      ? `https://m.douban.cmliussss.com/rexxar/api/v2/${kind}/recommend`
+      : `https://m.douban.com/rexxar/api/v2/${kind}/recommend`;
   const reqParams = new URLSearchParams();
   reqParams.append('refresh', '0');
   reqParams.append('start', pageStart.toString());
-  // Overfetch by 2 to compensate for the fact that douban randomly injects "ad" entries
-  // into the recommendations array which are filtered out below, breaking the 24-grid UI.
-  reqParams.append('count', (pageLimit + 2).toString());
+  // Overfetch by roughly 10 items to compensate for ad injection without heavy loop recursion
+  reqParams.append('count', (pageLimit + 10).toString());
   reqParams.append('selected_categories', JSON.stringify(selectedCategories));
   reqParams.append('uncollect', 'false');
   reqParams.append('score_range', '0,10');
@@ -448,7 +447,7 @@ async function fetchDoubanRecommends(
     reqParams.append('sort', sort);
   }
   const target = `${baseUrl}?${reqParams.toString()}`;
-  console.log(target);
+  // console.log(target);
   try {
     const response = await fetchWithTimeout(
       target,
@@ -460,21 +459,32 @@ async function fetchDoubanRecommends(
     }
 
     const doubanData: DoubanRecommendApiResponse = await response.json();
-    const list: DoubanItem[] = doubanData.items
-      .filter((item) => item.type == 'movie' || item.type == 'tv')
-      .slice(0, pageLimit)
-      .map((item) => ({
-        id: item.id,
-        title: item.title,
-        poster: item.pic?.normal || item.pic?.large || '',
-        rate: item.rating?.value ? item.rating.value.toFixed(1) : '',
-        year: item.year,
-      }));
+
+    // Extrapolate exact next cursor relative to true valid items found
+    let validCount = 0;
+    let nextStartCursorDelta = 0;
+    const finalItems: DoubanItem[] = [];
+
+    for (const item of doubanData.items || []) {
+      nextStartCursorDelta++;
+      if (item.type === 'movie' || item.type === 'tv') {
+        finalItems.push({
+          id: item.id,
+          title: item.title,
+          poster: item.pic?.normal || item.pic?.large || '',
+          rate: item.rating?.value ? item.rating.value.toFixed(1) : '',
+          year: item.year,
+        });
+        validCount++;
+        if (validCount === pageLimit) break;
+      }
+    }
 
     return {
       code: 200,
       message: '获取成功',
-      list: list,
+      list: finalItems,
+      nextStart: pageStart + nextStartCursorDelta,
     };
   } catch (error) {
     throw new Error(`获取豆瓣推荐数据失败: ${(error as Error).message}`);
