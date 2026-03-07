@@ -2502,6 +2502,8 @@ const VideoSourceConfig = ({
     disabled: false,
     from: 'config',
   });
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingSource, setEditingSource] = useState<DataSource | null>(null);
 
   // 批量操作相关状态
   const [selectedSources, setSelectedSources] = useState<Set<string>>(
@@ -2630,6 +2632,29 @@ const VideoSourceConfig = ({
       setShowAddForm(false);
     }).catch(() => {
       console.error('操作失败', 'add', newSource);
+    });
+  };
+
+  const handleEditSource = () => {
+    if (
+      !editingSource ||
+      !editingSource.name ||
+      !editingSource.key ||
+      !editingSource.api
+    )
+      return;
+    withLoading('editSource', async () => {
+      await callSourceApi({
+        action: 'edit',
+        key: editingSource.key,
+        name: editingSource.name,
+        api: editingSource.api,
+        detail: editingSource.detail,
+      });
+      setEditingSource(null);
+      setShowEditForm(false);
+    }).catch(() => {
+      console.error('操作失败', 'edit', editingSource);
     });
   };
 
@@ -2886,15 +2911,21 @@ const VideoSourceConfig = ({
           {source.detail || '-'}
         </td>
         <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${
+          <button
+            onClick={() => handleToggleEnable(source.key)}
+            disabled={isLoading(`toggleSource_${source.key}`)}
+            className={`px-2 py-1 text-xs rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
               !source.disabled
                 ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
                 : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
+            } ${
+              isLoading(`toggleSource_${source.key}`)
+                ? 'opacity-50 cursor-not-allowed'
+                : ''
             }`}
           >
             {!source.disabled ? '启用中' : '已禁用'}
-          </span>
+          </button>
         </td>
         <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
           {(() => {
@@ -2917,33 +2948,40 @@ const VideoSourceConfig = ({
           })()}
         </td>
         <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2'>
-          <button
-            onClick={() => handleToggleEnable(source.key)}
-            disabled={isLoading(`toggleSource_${source.key}`)}
-            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${
-              !source.disabled
-                ? buttonStyles.roundedDanger
-                : buttonStyles.roundedSuccess
-            } transition-colors ${
-              isLoading(`toggleSource_${source.key}`)
-                ? 'opacity-50 cursor-not-allowed'
-                : ''
-            }`}
-          >
-            {!source.disabled ? '禁用' : '启用'}
-          </button>
           {source.from !== 'config' && (
-            <button
-              onClick={() => handleDelete(source.key)}
-              disabled={isLoading(`deleteSource_${source.key}`)}
-              className={`${buttonStyles.roundedSecondary} ${
-                isLoading(`deleteSource_${source.key}`)
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
-              }`}
-            >
-              删除
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  setEditingSource({ ...source });
+                  setShowEditForm(true);
+                  if (!showEditForm) {
+                    setTimeout(
+                      () => window.scrollTo({ top: 300, behavior: 'smooth' }),
+                      50
+                    );
+                  }
+                }}
+                disabled={isLoading(`editSource_${source.key}`)}
+                className={`${buttonStyles.roundedPrimary} ${
+                  isLoading(`editSource_${source.key}`)
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
+                }`}
+              >
+                编辑
+              </button>
+              <button
+                onClick={() => handleDelete(source.key)}
+                disabled={isLoading(`deleteSource_${source.key}`)}
+                className={`${buttonStyles.roundedSecondary} ${
+                  isLoading(`deleteSource_${source.key}`)
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
+                }`}
+              >
+                删除
+              </button>
+            </>
           )}
         </td>
       </tr>
@@ -3210,6 +3248,99 @@ const VideoSourceConfig = ({
               }`}
             >
               {isLoading('addSource') ? '添加中...' : '添加'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showEditForm && editingSource && (
+        <div className='p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800 space-y-4 mb-4 relative'>
+          <button
+            onClick={() => setShowEditForm(false)}
+            className='absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+          >
+            <svg
+              className='w-5 h-5'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M6 18L18 6M6 6l12 12'
+              />
+            </svg>
+          </button>
+          <h4 className='text-sm font-medium text-blue-800 dark:text-blue-300'>
+            编辑视频源：{editingSource.name}
+          </h4>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+            <input
+              type='text'
+              placeholder='名称'
+              value={editingSource.name}
+              onChange={(e) =>
+                setEditingSource((prev) =>
+                  prev ? { ...prev, name: e.target.value } : null
+                )
+              }
+              className='px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+            />
+            <input
+              type='text'
+              placeholder='Key (不可修改)'
+              value={editingSource.key}
+              disabled
+              className='px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-gray-500 cursor-not-allowed'
+            />
+            <input
+              type='text'
+              placeholder='API 地址'
+              value={editingSource.api}
+              onChange={(e) =>
+                setEditingSource((prev) =>
+                  prev ? { ...prev, api: e.target.value } : null
+                )
+              }
+              className='px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+            />
+            <input
+              type='text'
+              placeholder='Detail 地址（选填）'
+              value={editingSource.detail || ''}
+              onChange={(e) =>
+                setEditingSource((prev) =>
+                  prev ? { ...prev, detail: e.target.value } : null
+                )
+              }
+              className='px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+            />
+          </div>
+          <div className='flex justify-end space-x-2 mt-2'>
+            <button
+              onClick={() => setShowEditForm(false)}
+              className={`w-full sm:w-auto px-4 py-2 ${buttonStyles.secondary}`}
+            >
+              取消
+            </button>
+            <button
+              onClick={handleEditSource}
+              disabled={
+                !editingSource.name ||
+                !editingSource.api ||
+                isLoading('editSource')
+              }
+              className={`w-full sm:w-auto px-4 py-2 ${
+                !editingSource.name ||
+                !editingSource.api ||
+                isLoading('editSource')
+                  ? buttonStyles.disabled
+                  : buttonStyles.primary
+              }`}
+            >
+              {isLoading('editSource') ? '保存中...' : '保存更改'}
             </button>
           </div>
         </div>
@@ -4605,9 +4736,7 @@ const SiteConfigComponent = ({
           customFilters={config.CustomFilters || []}
         />
         <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-          控制选片顶部频道的先后顺序。支持填入系统默认(movie, tv, anime,
-          show)与各种
-          <span className='text-green-500'>自定义筛选里的主频道名称</span>。
+          控制选片顶部频道的先后顺序。
         </p>
       </div>
 
