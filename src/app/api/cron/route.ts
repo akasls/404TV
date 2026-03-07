@@ -78,8 +78,6 @@ async function refreshConfig() {
     } catch (e) {
       console.error('刷新配置失败:', e);
     }
-  } else {
-
   }
 }
 

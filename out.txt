@@ -1,0 +1,66 @@
+  ▲ Next.js 14.2.30
+  - Environments: .env
+  - Experiments (use with caution):
+    · instrumentationHook
+
+   Creating an optimized production build ...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: C:\Users\404\Documents\GitHub\LunaTV\node_modules\.pnpm\next-pwa@5.6.0_@babel+core@_81f72fe58ef69b3dc8754870a4ea48e6\node_modules\next-pwa\register.js
+> [PWA] Service worker: C:\Users\404\Documents\GitHub\LunaTV\public\sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+Failed to compile.
+
+./src/app/api/admin/custom_filter/route.ts
+61:5  Warning: Unexpected console statement.  no-console
+
+./src/app/api/cron/route.ts
+12:27  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  unused-imports/no-unused-vars
+81:10  Error: Empty block statement.  no-empty
+129:15  Warning: 'totalRecords' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+163:13  Warning: 'processedRecords' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+178:15  Warning: 'totalFavorites' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+209:13  Warning: 'processedFavorites' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+
+./src/app/api/server-config/route.ts
+10:27  Warning: 'request' is defined but never used. Allowed unused args must match /^_/u.  unused-imports/no-unused-vars
+
+./src/app/api/videolist/route.ts
+37:39  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+50:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+51:5  Warning: Unexpected console statement.  no-console
+
+./src/app/settings/components/LocalSettings.tsx
+41:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+45:45  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+49:54  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+53:53  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+60:45  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+69:47  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+70:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+71:52  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+72:51  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+73:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/settings/components/SourceManager.tsx
+56:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/settings/page.tsx
+46:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/components/SourceManagerModal.tsx
+91:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/lib/douban.client.ts
+485:11  Warning: 'iterationValidDelta' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
