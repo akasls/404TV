@@ -84,9 +84,35 @@ export default async function RootLayout({
       categories: filter.categories || [],
     }));
     fluidSearch = config.SiteConfig.FluidSearch;
-    if (config.SiteConfig.ChannelOrder) {
+    if (
+      config.SiteConfig.ChannelOrder &&
+      config.SiteConfig.ChannelOrder.length > 0
+    ) {
       channelOrder = config.SiteConfig.ChannelOrder;
     }
+
+    // 将用户如果起了重名的自定义频道，自动替换掉原本的系统保留字段
+    const defaultMappings: Record<string, string> = {
+      movie: '电影',
+      tv: '电视剧',
+      minitv: '短剧',
+      anime: '动漫',
+      show: '综艺',
+    };
+    channelOrder = channelOrder.map((c) => {
+      const sysLabel = defaultMappings[c];
+      if (sysLabel && customFilters.some((f) => f.name === sysLabel)) {
+        return sysLabel; // convert sys ID to custom filter name
+      }
+      return c;
+    });
+
+    // 自动将未出现在排序列表中的自定义筛选频道追加到末尾
+    customFilters.forEach((cf) => {
+      if (!channelOrder.includes(cf.name)) {
+        channelOrder.push(cf.name);
+      }
+    });
   }
 
   // 将运行时配置注入到全局 window 对象，供客户端在运行时读取

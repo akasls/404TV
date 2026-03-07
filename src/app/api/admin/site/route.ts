@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
       DoubanImageProxy,
       DisableYellowFilter,
       FluidSearch,
+      ChannelOrder,
+      GuestAccess,
     } = body as {
       SiteName: string;
       Announcement: string;
@@ -50,6 +52,8 @@ export async function POST(request: NextRequest) {
       DoubanImageProxy: string;
       DisableYellowFilter: boolean;
       FluidSearch: boolean;
+      ChannelOrder?: string[];
+      GuestAccess?: boolean;
     };
 
     // 参数校验
@@ -93,6 +97,11 @@ export async function POST(request: NextRequest) {
       DoubanImageProxy,
       DisableYellowFilter,
       FluidSearch,
+      ChannelOrder: ChannelOrder || adminConfig.SiteConfig.ChannelOrder,
+      GuestAccess:
+        GuestAccess === undefined
+          ? adminConfig.SiteConfig.GuestAccess
+          : GuestAccess,
     };
 
     // 写入数据库

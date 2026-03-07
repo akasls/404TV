@@ -4975,13 +4975,17 @@ const DraggableChannelList = ({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   const available = useMemo(() => {
-    const defaults = [
+    const customLabels = customFilters.map((f: any) => f.name);
+    const defaultsTemplate = [
       { id: 'movie', label: '电影' },
       { id: 'tv', label: '电视剧' },
       { id: 'minitv', label: '短剧' },
       { id: 'anime', label: '动漫' },
       { id: 'show', label: '综艺' },
     ];
+    const defaults = defaultsTemplate.filter(
+      (d) => !customLabels.includes(d.label)
+    );
     const customs = customFilters.map((f: any) => ({
       id: f.name,
       label: f.name,
