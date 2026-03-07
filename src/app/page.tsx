@@ -2,7 +2,7 @@
 
 'use client';
 
-import { ChevronRight, Cat, MonitorPlay } from 'lucide-react';
+import { ChevronRight, Cat, MonitorPlay, Clock, Film, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -89,7 +89,8 @@ function HomeClient() {
             {/* 热门电影 */}
             <section className='mb-8'>
               <div className='mb-4 flex items-center justify-between'>
-                <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                <h2 className='text-xl sm:text-2xl font-bold flex items-center text-gray-900 dark:text-white drop-shadow-sm'>
+                  <Film className='w-6 h-6 mr-2 text-green-500' />
                   热门电影
                 </h2>
                 <Link
@@ -261,7 +262,8 @@ function HomeClient() {
             {/* 热门综艺 */}
             <section className='mb-8'>
               <div className='mb-4 flex items-center justify-between'>
-                <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                <h2 className='text-xl sm:text-2xl font-bold flex items-center text-gray-900 dark:text-white drop-shadow-sm'>
+                  <Sparkles className='w-6 h-6 mr-2 text-green-500' />
                   热门综艺
                 </h2>
                 <Link

@@ -98,7 +98,7 @@ export default function LocalSettings() {
       <div className='flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-gray-700'>
         <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2'>
           <SettingsIcon className='w-6 h-6 text-green-500' />
-          应用本地设置
+          本地设置
         </h3>
         <button
           onClick={handleResetSettings}

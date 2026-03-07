@@ -11,6 +11,7 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 
+import { Heart } from 'lucide-react';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
 
@@ -82,17 +83,15 @@ export default function FavoritesPage() {
 
   return (
     <PageLayout activePath='/favorites'>
-      <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible'>
+      <div className='px-4 sm:px-10 py-4 overflow-visible'>
         <div className='max-w-[95%] mx-auto'>
           <section className='mb-8'>
             <div className='mb-6 flex items-center justify-between'>
               <div>
-                <h1 className='text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 dark:text-gray-200'>
+                <h1 className='text-2xl flex items-center gap-2 sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 dark:text-gray-200'>
+                  <Heart className='w-6 h-6 sm:w-8 sm:h-8 text-red-500' />
                   我的收藏
                 </h1>
-                <p className='text-sm sm:text-base text-gray-600 dark:text-gray-400'>
-                  您收藏的所有影片
-                </p>
               </div>
               {favoriteItems.length > 0 && (
                 <button

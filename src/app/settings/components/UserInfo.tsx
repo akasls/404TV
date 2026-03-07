@@ -1,6 +1,6 @@
 'use client';
 
-import { Database, KeyRound, LogOut, Shield } from 'lucide-react';
+import { Database, KeyRound, Shield } from 'lucide-react';
 import { useState } from 'react';
 
 interface AuthInfo {
@@ -158,15 +158,6 @@ export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoPr
           </div>
         </div>
       )}
-
-      <div className='pt-8 flex justify-start'>
-        <button
-          onClick={onLogout}
-          className='px-4 py-2.5 inline-flex items-center gap-3 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-all'
-        >
-          <LogOut className='w-4 h-4' /> 退出登录
-        </button>
-      </div>
     </div>
   );
 }

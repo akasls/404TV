@@ -695,7 +695,7 @@ function DoubanPageClient() {
 
   return (
     <PageLayout activePath={getActivePath()}>
-      <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible mt-2 sm:mt-0'>
+      <div className='px-4 sm:px-10 py-4 overflow-visible mt-2 sm:mt-0'>
         {/* 选择器组件容器(含频道) */}
         <div className='mb-6 sm:mb-8 bg-white/60 dark:bg-gray-800/40 rounded-2xl p-4 sm:p-6 border border-gray-200/30 dark:border-gray-700/30 backdrop-blur-sm'>
           {/* 大频道切换 */}
@@ -747,7 +747,7 @@ function DoubanPageClient() {
         </div>
 
         {/* 内容展示区域 */}
-        <div className='max-w-[95%] mx-auto mt-8 overflow-visible'>
+        <div className='w-full mt-4 overflow-visible'>
           {/* 内容网格 */}
           <div className='justify-start grid grid-cols-3 gap-x-2 gap-y-12 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8 sm:gap-y-20'>
             {loading || !selectorsReady
