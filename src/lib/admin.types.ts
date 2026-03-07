@@ -38,12 +38,13 @@ export interface AdminConfig {
     from: 'config' | 'custom';
     disabled?: boolean;
   }[];
-  CustomCategories: {
-    name?: string;
-    type: 'movie' | 'tv';
-    query: string;
-    from: 'config' | 'custom';
-    disabled?: boolean;
+  CustomFilters: {
+    name: string;
+    url: string;
+    categories: {
+      name: string;
+      url: string;
+    }[];
   }[];
 }
 

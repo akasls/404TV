@@ -6,12 +6,17 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface CustomCategory {
   name: string;
-  type: 'movie' | 'tv';
-  query: string;
+  url: string;
+}
+
+interface CustomFilter {
+  name: string;
+  url: string;
+  categories: CustomCategory[];
 }
 
 interface DoubanCustomSelectorProps {
-  customCategories: CustomCategory[];
+  customFilters: CustomFilter[];
   primarySelection?: string;
   secondarySelection?: string;
   onPrimaryChange: (value: string) => void;
@@ -19,7 +24,7 @@ interface DoubanCustomSelectorProps {
 }
 
 const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
-  customCategories,
+  customFilters,
   primarySelection,
   secondarySelection,
   onPrimaryChange,
@@ -43,31 +48,26 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
   // 二级选择器滚动容器的ref
   const secondaryScrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // 根据 customCategories 生成一级选择器选项（按 type 分组，电影优先）
+  // 根据 customFilters 生成一级选择器选项（频道）
   const primaryOptions = React.useMemo(() => {
-    const types = Array.from(new Set(customCategories.map((cat) => cat.type)));
-    // 确保电影类型排在前面
-    const sortedTypes = types.sort((a, b) => {
-      if (a === 'movie' && b !== 'movie') return -1;
-      if (a !== 'movie' && b === 'movie') return 1;
-      return 0;
-    });
-    return sortedTypes.map((type) => ({
-      label: type === 'movie' ? '电影' : '剧集',
-      value: type,
+    return customFilters.map((filter) => ({
+      label: filter.name,
+      value: filter.name,
     }));
-  }, [customCategories]);
+  }, [customFilters]);
 
-  // 根据选中的一级选项生成二级选择器选项
+  // 根据选中的频道生成分类选项
   const secondaryOptions = React.useMemo(() => {
     if (!primarySelection) return [];
-    return customCategories
-      .filter((cat) => cat.type === primarySelection)
-      .map((cat) => ({
-        label: cat.name || cat.query,
-        value: cat.query,
-      }));
-  }, [customCategories, primarySelection]);
+    const filter = customFilters.find((f) => f.name === primarySelection);
+    if (!filter) return [];
+
+    const options = [{ label: '全部分类', value: filter.url }];
+    filter.categories.forEach((cat) => {
+      options.push({ label: cat.name, value: cat.url });
+    });
+    return options;
+  }, [customFilters, primarySelection]);
 
   // 处理二级选择器的鼠标滚轮事件（原生 DOM 事件）
   const handleSecondaryWheel = React.useCallback((e: WheelEvent) => {
@@ -256,11 +256,10 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
                 buttonRefs.current[index] = el;
               }}
               onClick={() => onChange(option.value)}
-              className={`relative z-10 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
-                isActive
+              className={`relative z-10 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${isActive
                   ? 'text-gray-900 dark:text-gray-100 cursor-default'
                   : 'text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer'
-              }`}
+                }`}
             >
               {option.label}
             </button>
@@ -271,7 +270,7 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
   };
 
   // 如果没有自定义分类，则不渲染任何内容
-  if (!customCategories || customCategories.length === 0) {
+  if (!customFilters || customFilters.length === 0) {
     return null;
   }
 
@@ -282,7 +281,7 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
         {/* 一级选择器 */}
         <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
           <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
-            类型
+            频道
           </span>
           <div className='overflow-x-auto'>
             {renderCapsuleSelector(
@@ -298,7 +297,7 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
         {secondaryOptions.length > 0 && (
           <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
             <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
-              片单
+              分类
             </span>
             <div ref={secondaryScrollContainerRef} className='overflow-x-auto'>
               {renderCapsuleSelector(

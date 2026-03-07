@@ -47,8 +47,12 @@ function DoubanPageClient() {
   const type = searchParams.get('type') || 'movie';
 
   // 获取 runtimeConfig 中的自定义分类数据
-  const [customCategories, setCustomCategories] = useState<
-    Array<{ name: string; type: 'movie' | 'tv'; query: string }>
+  const [customFilters, setCustomFilters] = useState<
+    Array<{
+      name: string;
+      url: string;
+      categories: { name: string; url: string }[];
+    }>
   >([]);
 
   // 选择器状态 - 完全独立，不依赖URL参数
@@ -73,8 +77,8 @@ function DoubanPageClient() {
   // 获取自定义分类数据
   useEffect(() => {
     const runtimeConfig = (window as any).RUNTIME_CONFIG;
-    if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
-      setCustomCategories(runtimeConfig.CUSTOM_CATEGORIES);
+    if (runtimeConfig?.CUSTOM_FILTERS?.length > 0) {
+      setCustomFilters(runtimeConfig.CUSTOM_FILTERS);
     }
   }, []);
 
@@ -115,29 +119,10 @@ function DoubanPageClient() {
 
   // 当type变化时重置选择器状态
   useEffect(() => {
-    if (type === 'custom' && customCategories.length > 0) {
-      // 自定义分类模式：优先选择 movie，如果没有 movie 则选择 tv
-      const types = Array.from(
-        new Set(customCategories.map((cat) => cat.type))
-      );
-      if (types.length > 0) {
-        // 优先选择 movie，如果没有 movie 则选择 tv
-        let selectedType = types[0]; // 默认选择第一个
-        if (types.includes('movie')) {
-          selectedType = 'movie';
-        } else {
-          selectedType = 'tv';
-        }
-        setPrimarySelection(selectedType);
-
-        // 设置选中类型的第一个分类的 query 作为二级选择
-        const firstCategory = customCategories.find(
-          (cat) => cat.type === selectedType
-        );
-        if (firstCategory) {
-          setSecondarySelection(firstCategory.query);
-        }
-      }
+    if (type === 'custom' && customFilters.length > 0) {
+      const firstFilter = customFilters[0];
+      setPrimarySelection(firstFilter.name);
+      setSecondarySelection(firstFilter.url);
     } else {
       // 全部重置为"全部"
       setPrimarySelection('全部');
@@ -160,7 +145,7 @@ function DoubanPageClient() {
     }, 50);
 
     return () => clearTimeout(timer);
-  }, [type, customCategories]);
+  }, [type, customFilters]);
 
   // 生成骨架屏数据
   const skeletonData = Array.from({ length: 25 }, (_, index) => index);
@@ -252,21 +237,15 @@ function DoubanPageClient() {
       let data: DoubanResult;
 
       if (type === 'custom') {
-        // 自定义分类模式：根据选中的一级和二级选项获取对应的分类
-        const selectedCategory = customCategories.find(
-          (cat) =>
-            cat.type === primarySelection && cat.query === secondarySelection
+        const selectedFilter = customFilters.find(
+          (f) => f.name === primarySelection
         );
 
-        if (selectedCategory) {
-          data = await getDoubanList({
-            tag: selectedCategory.query,
-            type: selectedCategory.type,
-            pageLimit: 25,
-            pageStart: 0,
-          });
+        if (selectedFilter && secondarySelection) {
+          const res = await fetch(`/api/videolist?url=${encodeURIComponent(secondarySelection)}`);
+          data = await res.json();
         } else {
-          throw new Error('没有找到对应的分类');
+          throw new Error('没有找到对应的频道和分类');
         }
       } else if (type === 'anime' && primarySelection === '每日放送') {
         const calendarData = await GetBangumiCalendarData();
@@ -374,7 +353,7 @@ function DoubanPageClient() {
     multiLevelValues,
     selectedWeekday,
     getRequestParams,
-    customCategories,
+    customFilters,
   ]);
 
   // 只在选择器准备好后才加载数据
@@ -429,20 +408,13 @@ function DoubanPageClient() {
 
           let data: DoubanResult;
           if (type === 'custom') {
-            // 自定义分类模式：根据选中的一级和二级选项获取对应的分类
-            const selectedCategory = customCategories.find(
-              (cat) =>
-                cat.type === primarySelection &&
-                cat.query === secondarySelection
+            const selectedFilter = customFilters.find(
+              (f) => f.name === primarySelection
             );
 
-            if (selectedCategory) {
-              data = await getDoubanList({
-                tag: selectedCategory.query,
-                type: selectedCategory.type,
-                pageLimit: 25,
-                pageStart: currentPage * 25,
-              });
+            if (selectedFilter && secondarySelection) {
+              const res = await fetch(`/api/videolist?url=${encodeURIComponent(secondarySelection)}&pg=${currentPage + 1}`);
+              data = await res.json();
             } else {
               throw new Error('没有找到对应的分类');
             }
@@ -545,7 +517,7 @@ function DoubanPageClient() {
     type,
     primarySelection,
     secondarySelection,
-    customCategories,
+    customFilters,
     multiLevelValues,
     selectedWeekday,
   ]);
@@ -604,14 +576,14 @@ function DoubanPageClient() {
         });
 
         // 如果是自定义分类模式，同时更新一级和二级选择器
-        if (type === 'custom' && customCategories.length > 0) {
-          const firstCategory = customCategories.find(
-            (cat) => cat.type === value
+        if (type === 'custom' && customFilters.length > 0) {
+          const firstFilter = customFilters.find(
+            (f) => f.name === value
           );
-          if (firstCategory) {
+          if (firstFilter) {
             // 批量更新状态，避免多次触发数据加载
             setPrimarySelection(value);
-            setSecondarySelection(firstCategory.query);
+            setSecondarySelection(firstFilter.url);
           } else {
             setPrimarySelection(value);
           }
@@ -630,7 +602,7 @@ function DoubanPageClient() {
         }
       }
     },
-    [primarySelection, type, customCategories]
+    [primarySelection, type, customFilters]
   );
 
   const handleSecondaryChange = useCallback(
@@ -707,11 +679,11 @@ function DoubanPageClient() {
               <CapsuleSwitch
                 options={[
                   { label: '电影', value: 'movie' },
-                  { label: '剧集', value: 'tv' },
+                  { label: '电视剧', value: 'tv' },
                   { label: '短剧', value: 'minitv' },
                   { label: '动漫', value: 'anime' },
                   { label: '综艺', value: 'show' },
-                  ...(customCategories.length > 0
+                  ...(customFilters.length > 0
                     ? [{ label: '自定义', value: 'custom' }]
                     : []),
                 ]}
@@ -736,7 +708,7 @@ function DoubanPageClient() {
               />
             ) : (
               <DoubanCustomSelector
-                customCategories={customCategories}
+                customFilters={customFilters}
                 primarySelection={primarySelection}
                 secondarySelection={secondarySelection}
                 onPrimaryChange={handlePrimaryChange}

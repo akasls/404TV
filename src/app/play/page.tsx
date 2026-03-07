@@ -1822,7 +1822,7 @@ function PlayPageClient() {
   return (
     <PageLayout activePath='/play'>
       <div className='flex items-center justify-center min-h-[calc(100vh-64px)]'>
-        <div className='flex flex-col w-full h-[max(100vh-56px,800px)] lg:h-[calc(100vh-64px)] overflow-hidden py-4 px-4 sm:px-5 lg:px-8 2xl:px-20'>
+        <div className='flex flex-col w-full h-[calc(100vh-64px)] overflow-hidden py-4 px-4 sm:px-5 lg:px-8 2xl:px-20'>
           {/* 第一行：播放器和选集 */}
           <div className='flex-1 min-h-0 flex flex-col pt-2'>
             <div className='flex-1 min-h-0 grid gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 lg:h-full lg:max-h-full'>

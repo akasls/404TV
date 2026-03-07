@@ -89,7 +89,7 @@ export default function FavoritesPage() {
             <div className='mb-6 flex items-center justify-between'>
               <div>
                 <h1 className='text-2xl flex items-center gap-2 sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 dark:text-gray-200'>
-                  <Heart className='w-6 h-6 sm:w-8 sm:h-8 text-red-500' />
+                  <Heart className='w-6 h-6 sm:w-8 sm:h-8 text-green-500' />
                   我的收藏
                 </h1>
               </div>

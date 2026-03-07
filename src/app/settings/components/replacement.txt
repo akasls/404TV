@@ -1,0 +1,207 @@
+// 自定义筛选配置组件
+const CustomFilterConfig = ({
+  config,
+  refreshConfig,
+}: {
+  config: AdminConfig | null;
+  refreshConfig: () => Promise<void>;
+}) => {
+  const { alertModal, showAlert, hideAlert } = useAlertModal();
+  const { isLoading, withLoading } = useLoadingState();
+  const [filters, setFilters] = useState<any[]>([]);
+  const [newChannel, setNewChannel] = useState({ name: '', url: '' });
+
+  useEffect(() => {
+    if (config?.CustomFilters) {
+      setFilters(config.CustomFilters);
+    }
+  }, [config]);
+
+  const handleSaveAll = async (newFilters: any[]) => {
+    try {
+      await withLoading('saveCustomFilters', async () => {
+        const resp = await fetch('/api/admin/custom_filter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customFilters: newFilters }),
+        });
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          throw new Error(data.error || `操作失败: ${resp.status}`);
+        }
+        await refreshConfig();
+        showSuccess('保存成功', showAlert);
+      });
+    } catch (err: any) {
+      showError(err.message || '保存失败', showAlert);
+    }
+  };
+
+  const addChannel = () => {
+    if (!newChannel.name || !newChannel.url) return;
+    const updated = [...filters, { ...newChannel, categories: [] }];
+    setFilters(updated);
+    setNewChannel({ name: '', url: '' });
+    handleSaveAll(updated);
+  };
+
+  const removeChannel = (idx: number) => {
+    const updated = [...filters];
+    updated.splice(idx, 1);
+    setFilters(updated);
+    handleSaveAll(updated);
+  };
+
+  const addCategory = (channelIdx: number, catName: string, catUrl: string) => {
+    const updated = [...filters];
+    updated[channelIdx].categories.push({ name: catName, url: catUrl });
+    setFilters(updated);
+    handleSaveAll(updated);
+  };
+
+  const removeCategory = (channelIdx: number, catIdx: number) => {
+    const updated = [...filters];
+    updated[channelIdx].categories.splice(catIdx, 1);
+    setFilters(updated);
+    handleSaveAll(updated);
+  };
+
+  if (!config) {
+    return (
+      <div className='text-center text-gray-500 dark:text-gray-400'>
+        加载中...
+      </div>
+    );
+  }
+
+  return (
+    <div className='space-y-6'>
+      <div className='flex flex-col sm:flex-row items-center gap-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700'>
+        <input
+          type='text'
+          placeholder='频道名称 (例如: 短剧)'
+          value={newChannel.name}
+          onChange={(e) =>
+            setNewChannel((prev) => ({ ...prev, name: e.target.value }))
+          }
+          className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 w-full sm:w-1/3 text-gray-900 dark:text-gray-100'
+        />
+        <input
+          type='text'
+          placeholder='频道URL (例如: https://.../api.php/provide/vod/?ac=videolist&t=37)'
+          value={newChannel.url}
+          onChange={(e) =>
+            setNewChannel((prev) => ({ ...prev, url: e.target.value }))
+          }
+          className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 w-full sm:flex-1 text-gray-900 dark:text-gray-100'
+        />
+        <button
+          onClick={addChannel}
+          disabled={!newChannel.name || !newChannel.url || isLoading('saveCustomFilters')}
+          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-medium transition-colors ${!newChannel.name || !newChannel.url || isLoading('saveCustomFilters')
+              ? buttonStyles.disabled
+              : buttonStyles.success
+            }`}
+        >
+          添加频道
+        </button>
+      </div>
+
+      <div className='space-y-4'>
+        {filters.map((filter, cIdx) => (
+          <div
+            key={cIdx}
+            className='border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-4'
+          >
+            <div className='flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-2'>
+              <div className='font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center'>
+                {filter.name}
+                <span className='ml-3 px-2 py-0.5 text-xs font-normal text-gray-500 bg-gray-100 dark:bg-gray-700 rounded'>
+                  {filter.url}
+                </span>
+              </div>
+              <button
+                onClick={() => removeChannel(cIdx)}
+                className='text-red-500 hover:text-red-600 transition-colors text-sm font-medium'
+              >
+                删除频道
+              </button>
+            </div>
+
+            <div className='pl-2 sm:pl-4 border-l-2 border-gray-200 dark:border-gray-600 space-y-3 mb-5'>
+              {filter.categories && filter.categories.length > 0 ? (
+                filter.categories.map((cat: any, catIdx: number) => (
+                  <div
+                    key={catIdx}
+                    className='flex items-center justify-between text-sm group'
+                  >
+                    <div className='truncate max-w-[70%] sm:max-w-[85%] text-gray-700 dark:text-gray-300'>
+                      <span className='font-medium'>{cat.name}</span>
+                      <span className='ml-2 text-xs text-gray-400'>
+                        {cat.url}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => removeCategory(cIdx, catIdx)}
+                      className='text-red-400 hover:text-red-500 opacity-60 group-hover:opacity-100 transition-all text-xs'
+                    >
+                      删除
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className='text-sm text-gray-400 italic py-1'>
+                  暂无分类，默认只展示该频道的全部内容
+                </div>
+              )}
+            </div>
+
+            <div className='flex flex-col sm:flex-row items-center gap-2 mt-2 bg-gray-50 dark:bg-gray-900 p-2 sm:p-3 rounded-lg border border-gray-100 dark:border-gray-700'>
+              <input
+                type='text'
+                placeholder='新分类名 (例如: 重生民国)'
+                id={`catName_${cIdx}`}
+                className='px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 w-full sm:w-1/4 text-gray-900 dark:text-gray-100'
+              />
+              <input
+                type='text'
+                placeholder='分类URL (例如: https://...&t=38)'
+                id={`catUrl_${cIdx}`}
+                className='px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 w-full sm:flex-1 text-gray-900 dark:text-gray-100'
+              />
+              <button
+                onClick={() => {
+                  const nInput = document.getElementById(
+                    `catName_${cIdx}`
+                  ) as HTMLInputElement;
+                  const uInput = document.getElementById(
+                    `catUrl_${cIdx}`
+                  ) as HTMLInputElement;
+                  if (nInput.value && uInput.value) {
+                    addCategory(cIdx, nInput.value, uInput.value);
+                    nInput.value = '';
+                    uInput.value = '';
+                  }
+                }}
+                disabled={isLoading('saveCustomFilters')}
+                className={`w-full sm:w-auto px-4 py-1.5 text-sm rounded font-medium transition-colors ${isLoading('saveCustomFilters') ? buttonStyles.disabled : buttonStyles.primary}`}
+              >
+                添加分类
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={hideAlert}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        timer={alertModal.timer}
+        showConfirm={alertModal.showConfirm}
+      />
+    </div>
+  );
+};

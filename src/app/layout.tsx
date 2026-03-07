@@ -26,12 +26,16 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: siteName,
     description: '影视聚合',
-    manifest: '/manifest.json',
+    manifest: '/manifest.json?v=2',
   };
 }
 
 export const viewport: Viewport = {
   viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#e6f3fb' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 };
 
 export default async function RootLayout({
@@ -54,10 +58,13 @@ export default async function RootLayout({
   let disableYellowFilter =
     process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true';
   let fluidSearch = process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false';
-  let customCategories = [] as {
+  let customFilters = [] as {
     name: string;
-    type: 'movie' | 'tv';
-    query: string;
+    url: string;
+    categories: {
+      name: string;
+      url: string;
+    }[];
   }[];
   if (storageType !== 'localstorage') {
     const config = await getConfig();
@@ -69,12 +76,10 @@ export default async function RootLayout({
     doubanImageProxyType = config.SiteConfig.DoubanImageProxyType;
     doubanImageProxy = config.SiteConfig.DoubanImageProxy;
     disableYellowFilter = config.SiteConfig.DisableYellowFilter;
-    customCategories = config.CustomCategories.filter(
-      (category) => !category.disabled
-    ).map((category) => ({
-      name: category.name || '',
-      type: category.type,
-      query: category.query,
+    customFilters = config.CustomFilters.map((filter) => ({
+      name: filter.name,
+      url: filter.url,
+      categories: filter.categories || [],
     }));
     fluidSearch = config.SiteConfig.FluidSearch;
   }
@@ -87,7 +92,7 @@ export default async function RootLayout({
     DOUBAN_IMAGE_PROXY_TYPE: doubanImageProxyType,
     DOUBAN_IMAGE_PROXY: doubanImageProxy,
     DISABLE_YELLOW_FILTER: disableYellowFilter,
-    CUSTOM_CATEGORIES: customCategories,
+    CUSTOM_FILTERS: customFilters,
     FLUID_SEARCH: fluidSearch,
   };
 
@@ -98,7 +103,7 @@ export default async function RootLayout({
           name='viewport'
           content='width=device-width, initial-scale=1.0, viewport-fit=cover'
         />
-        <link rel='apple-touch-icon' href='/icons/icon-192x192.png' />
+        <link rel='apple-touch-icon' href='/icons/icon-192x192.png?v=2' />
         {/* 将配置序列化后直接写入脚本，浏览器端可通过 window.RUNTIME_CONFIG 获取 */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script

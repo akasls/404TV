@@ -2782,8 +2782,8 @@ const VideoSourceConfig = ({
   );
 };
 
-// 分类配置组件
-const CategoryConfig = ({
+// 自定义筛选配置组件
+const CustomFilterConfig = ({
   config,
   refreshConfig,
 }: {
@@ -2792,201 +2792,62 @@ const CategoryConfig = ({
 }) => {
   const { alertModal, showAlert, hideAlert } = useAlertModal();
   const { isLoading, withLoading } = useLoadingState();
-  const [categories, setCategories] = useState<CustomCategory[]>([]);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [orderChanged, setOrderChanged] = useState(false);
-  const [newCategory, setNewCategory] = useState<CustomCategory>({
-    name: '',
-    type: 'movie',
-    query: '',
-    disabled: false,
-    from: 'config',
-  });
+  const [filters, setFilters] = useState<any[]>([]);
+  const [newChannel, setNewChannel] = useState({ name: '', url: '' });
 
-  // dnd-kit 传感器
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, // 轻微位移即可触发
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 150, // 长按 150ms 后触发，避免与滚动冲突
-        tolerance: 5,
-      },
-    })
-  );
-
-  // 初始化
   useEffect(() => {
-    if (config?.CustomCategories) {
-      setCategories(config.CustomCategories);
-      // 进入时重置 orderChanged
-      setOrderChanged(false);
+    if (config?.CustomFilters) {
+      setFilters(config.CustomFilters);
     }
   }, [config]);
 
-  // 通用 API 请求
-  const callCategoryApi = async (body: Record<string, any>) => {
+  const handleSaveAll = async (newFilters: any[]) => {
     try {
-      const resp = await fetch('/api/admin/category', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body }),
+      await withLoading('saveCustomFilters', async () => {
+        const resp = await fetch('/api/admin/custom_filter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customFilters: newFilters }),
+        });
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          throw new Error(data.error || `操作失败: ${resp.status}`);
+        }
+        await refreshConfig();
+        showSuccess('保存成功', showAlert);
       });
-
-      if (!resp.ok) {
-        const data = await resp.json().catch(() => ({}));
-        throw new Error(data.error || `操作失败: ${resp.status}`);
-      }
-
-      // 成功后刷新配置
-      await refreshConfig();
-    } catch (err) {
-      showError(err instanceof Error ? err.message : '操作失败', showAlert);
-      throw err; // 向上抛出方便调用处判断
+    } catch (err: any) {
+      showError(err.message || '保存失败', showAlert);
     }
   };
 
-  const handleToggleEnable = (query: string, type: 'movie' | 'tv') => {
-    const target = categories.find((c) => c.query === query && c.type === type);
-    if (!target) return;
-    const action = target.disabled ? 'enable' : 'disable';
-    withLoading(`toggleCategory_${query}_${type}`, () => callCategoryApi({ action, query, type })).catch(() => {
-      console.error('操作失败', action, query, type);
-    });
+  const addChannel = () => {
+    if (!newChannel.name || !newChannel.url) return;
+    const updated = [...filters, { ...newChannel, categories: [] }];
+    setFilters(updated);
+    setNewChannel({ name: '', url: '' });
+    handleSaveAll(updated);
   };
 
-  const handleDelete = (query: string, type: 'movie' | 'tv') => {
-    withLoading(`deleteCategory_${query}_${type}`, () => callCategoryApi({ action: 'delete', query, type })).catch(() => {
-      console.error('操作失败', 'delete', query, type);
-    });
+  const removeChannel = (idx: number) => {
+    const updated = [...filters];
+    updated.splice(idx, 1);
+    setFilters(updated);
+    handleSaveAll(updated);
   };
 
-  const handleAddCategory = () => {
-    if (!newCategory.name || !newCategory.query) return;
-    withLoading('addCategory', async () => {
-      await callCategoryApi({
-        action: 'add',
-        name: newCategory.name,
-        type: newCategory.type,
-        query: newCategory.query,
-      });
-      setNewCategory({
-        name: '',
-        type: 'movie',
-        query: '',
-        disabled: false,
-        from: 'custom',
-      });
-      setShowAddForm(false);
-    }).catch(() => {
-      console.error('操作失败', 'add', newCategory);
-    });
+  const addCategory = (channelIdx: number, catName: string, catUrl: string) => {
+    const updated = [...filters];
+    updated[channelIdx].categories.push({ name: catName, url: catUrl });
+    setFilters(updated);
+    handleSaveAll(updated);
   };
 
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = categories.findIndex(
-      (c) => `${c.query}:${c.type}` === active.id
-    );
-    const newIndex = categories.findIndex(
-      (c) => `${c.query}:${c.type}` === over.id
-    );
-    setCategories((prev) => arrayMove(prev, oldIndex, newIndex));
-    setOrderChanged(true);
-  };
-
-  const handleSaveOrder = () => {
-    const order = categories.map((c) => `${c.query}:${c.type}`);
-    withLoading('saveCategoryOrder', () => callCategoryApi({ action: 'sort', order }))
-      .then(() => {
-        setOrderChanged(false);
-      })
-      .catch(() => {
-        console.error('操作失败', 'sort', order);
-      });
-  };
-
-  // 可拖拽行封装 (dnd-kit)
-  const DraggableRow = ({ category }: { category: CustomCategory }) => {
-    const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id: `${category.query}:${category.type}` });
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-    } as React.CSSProperties;
-
-    return (
-      <tr
-        ref={setNodeRef}
-        style={style}
-        className='hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors select-none'
-      >
-        <td
-          className="px-2 py-4 cursor-grab text-gray-400"
-          style={{ touchAction: 'none' }}
-          {...{ ...attributes, ...listeners }}
-        >
-          <GripVertical size={16} />
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
-          {category.name || '-'}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${category.type === 'movie'
-              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
-              : 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300'
-              }`}
-          >
-            {category.type === 'movie' ? '电影' : '电视剧'}
-          </span>
-        </td>
-        <td
-          className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-[12rem] truncate'
-          title={category.query}
-        >
-          {category.query}
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
-          <span
-            className={`px-2 py-1 text-xs rounded-full ${!category.disabled
-              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
-              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
-              }`}
-          >
-            {!category.disabled ? '启用中' : '已禁用'}
-          </span>
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2'>
-          <button
-            onClick={() =>
-              handleToggleEnable(category.query, category.type)
-            }
-            disabled={isLoading(`toggleCategory_${category.query}_${category.type}`)}
-            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${!category.disabled
-              ? buttonStyles.roundedDanger
-              : buttonStyles.roundedSuccess
-              } transition-colors ${isLoading(`toggleCategory_${category.query}_${category.type}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {!category.disabled ? '禁用' : '启用'}
-          </button>
-          {category.from !== 'config' && (
-            <button
-              onClick={() => handleDelete(category.query, category.type)}
-              disabled={isLoading(`deleteCategory_${category.query}_${category.type}`)}
-              className={`${buttonStyles.roundedSecondary} ${isLoading(`deleteCategory_${category.query}_${category.type}`) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              删除
-            </button>
-          )}
-        </td>
-      </tr>
-    );
+  const removeCategory = (channelIdx: number, catIdx: number) => {
+    const updated = [...filters];
+    updated[channelIdx].categories.splice(catIdx, 1);
+    setFilters(updated);
+    handleSaveAll(updated);
   };
 
   if (!config) {
@@ -2999,127 +2860,123 @@ const CategoryConfig = ({
 
   return (
     <div className='space-y-6'>
-      {/* 添加分类表单 */}
-      <div className='flex items-center justify-between'>
-        <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-          自定义分类列表
-        </h4>
+      <div className='flex flex-col sm:flex-row items-center gap-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700'>
+        <input
+          type='text'
+          placeholder='频道名称 (例如: 短剧)'
+          value={newChannel.name}
+          onChange={(e) =>
+            setNewChannel((prev) => ({ ...prev, name: e.target.value }))
+          }
+          className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 w-full sm:w-1/3 text-gray-900 dark:text-gray-100'
+        />
+        <input
+          type='text'
+          placeholder='频道URL (例如: https://.../api.php/provide/vod/?ac=videolist&t=37)'
+          value={newChannel.url}
+          onChange={(e) =>
+            setNewChannel((prev) => ({ ...prev, url: e.target.value }))
+          }
+          className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 w-full sm:flex-1 text-gray-900 dark:text-gray-100'
+        />
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`px-3 py-1 text-sm rounded-lg transition-colors ${showAddForm ? buttonStyles.secondary : buttonStyles.success}`}
+          onClick={addChannel}
+          disabled={!newChannel.name || !newChannel.url || isLoading('saveCustomFilters')}
+          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-medium transition-colors ${!newChannel.name || !newChannel.url || isLoading('saveCustomFilters')
+              ? buttonStyles.disabled
+              : buttonStyles.success
+            }`}
         >
-          {showAddForm ? '取消' : '添加分类'}
+          添加频道
         </button>
       </div>
 
-      {showAddForm && (
-        <div className='p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4'>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            <input
-              type='text'
-              placeholder='分类名称'
-              value={newCategory.name}
-              onChange={(e) =>
-                setNewCategory((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-            <select
-              value={newCategory.type}
-              onChange={(e) =>
-                setNewCategory((prev) => ({
-                  ...prev,
-                  type: e.target.value as 'movie' | 'tv',
-                }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            >
-              <option value='movie'>电影</option>
-              <option value='tv'>电视剧</option>
-            </select>
-            <input
-              type='text'
-              placeholder='搜索关键词'
-              value={newCategory.query}
-              onChange={(e) =>
-                setNewCategory((prev) => ({ ...prev, query: e.target.value }))
-              }
-              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-            />
-          </div>
-          <div className='flex justify-end'>
-            <button
-              onClick={handleAddCategory}
-              disabled={!newCategory.name || !newCategory.query || isLoading('addCategory')}
-              className={`w-full sm:w-auto px-4 py-2 ${!newCategory.name || !newCategory.query || isLoading('addCategory') ? buttonStyles.disabled : buttonStyles.success}`}
-            >
-              {isLoading('addCategory') ? '添加中...' : '添加'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 分类表格 */}
-      <div className='border border-gray-200 dark:border-gray-700 rounded-lg max-h-[28rem] overflow-y-auto overflow-x-auto relative'>
-        <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-          <thead className='bg-gray-50 dark:bg-gray-900 sticky top-0 z-10'>
-            <tr>
-              <th className='w-8' />
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                分类名称
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                类型
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                搜索关键词
-              </th>
-              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                状态
-              </th>
-              <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                操作
-              </th>
-            </tr>
-          </thead>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-            autoScroll={false}
-            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+      <div className='space-y-4'>
+        {filters.map((filter, cIdx) => (
+          <div
+            key={cIdx}
+            className='border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-4'
           >
-            <SortableContext
-              items={categories.map((c) => `${c.query}:${c.type}`)}
-              strategy={verticalListSortingStrategy}
-            >
-              <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
-                {categories.map((category) => (
-                  <DraggableRow
-                    key={`${category.query}:${category.type}`}
-                    category={category}
-                  />
-                ))}
-              </tbody>
-            </SortableContext>
-          </DndContext>
-        </table>
+            <div className='flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-2'>
+              <div className='font-bold text-lg text-gray-800 dark:text-gray-100 flex items-center'>
+                {filter.name}
+                <span className='ml-3 px-2 py-0.5 text-xs font-normal text-gray-500 bg-gray-100 dark:bg-gray-700 rounded'>
+                  {filter.url}
+                </span>
+              </div>
+              <button
+                onClick={() => removeChannel(cIdx)}
+                className='text-red-500 hover:text-red-600 transition-colors text-sm font-medium'
+              >
+                删除频道
+              </button>
+            </div>
+
+            <div className='pl-2 sm:pl-4 border-l-2 border-gray-200 dark:border-gray-600 space-y-3 mb-5'>
+              {filter.categories && filter.categories.length > 0 ? (
+                filter.categories.map((cat: any, catIdx: number) => (
+                  <div
+                    key={catIdx}
+                    className='flex items-center justify-between text-sm group'
+                  >
+                    <div className='truncate max-w-[70%] sm:max-w-[85%] text-gray-700 dark:text-gray-300'>
+                      <span className='font-medium'>{cat.name}</span>
+                      <span className='ml-2 text-xs text-gray-400'>
+                        {cat.url}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => removeCategory(cIdx, catIdx)}
+                      className='text-red-400 hover:text-red-500 opacity-60 group-hover:opacity-100 transition-all text-xs'
+                    >
+                      删除
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className='text-sm text-gray-400 italic py-1'>
+                  暂无分类，默认只展示该频道的全部内容
+                </div>
+              )}
+            </div>
+
+            <div className='flex flex-col sm:flex-row items-center gap-2 mt-2 bg-gray-50 dark:bg-gray-900 p-2 sm:p-3 rounded-lg border border-gray-100 dark:border-gray-700'>
+              <input
+                type='text'
+                placeholder='新分类名 (例如: 重生民国)'
+                id={`catName_${cIdx}`}
+                className='px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 w-full sm:w-1/4 text-gray-900 dark:text-gray-100'
+              />
+              <input
+                type='text'
+                placeholder='分类URL (例如: https://...&t=38)'
+                id={`catUrl_${cIdx}`}
+                className='px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 w-full sm:flex-1 text-gray-900 dark:text-gray-100'
+              />
+              <button
+                onClick={() => {
+                  const nInput = document.getElementById(
+                    `catName_${cIdx}`
+                  ) as HTMLInputElement;
+                  const uInput = document.getElementById(
+                    `catUrl_${cIdx}`
+                  ) as HTMLInputElement;
+                  if (nInput.value && uInput.value) {
+                    addCategory(cIdx, nInput.value, uInput.value);
+                    nInput.value = '';
+                    uInput.value = '';
+                  }
+                }}
+                disabled={isLoading('saveCustomFilters')}
+                className={`w-full sm:w-auto px-4 py-1.5 text-sm rounded font-medium transition-colors ${isLoading('saveCustomFilters') ? buttonStyles.disabled : buttonStyles.primary}`}
+              >
+                添加分类
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* 保存排序按钮 */}
-      {orderChanged && (
-        <div className='flex justify-end'>
-          <button
-            onClick={handleSaveOrder}
-            disabled={isLoading('saveCategoryOrder')}
-            className={`px-3 py-1.5 text-sm ${isLoading('saveCategoryOrder') ? buttonStyles.disabled : buttonStyles.primary}`}
-          >
-            {isLoading('saveCategoryOrder') ? '保存中...' : '保存排序'}
-          </button>
-        </div>
-      )}
-
-      {/* 通用弹窗组件 */}
       <AlertModal
         isOpen={alertModal.isOpen}
         onClose={hideAlert}
@@ -3132,6 +2989,7 @@ const CategoryConfig = ({
     </div>
   );
 };
+
 
 // 新增配置文件组件
 const ConfigFileComponent = ({ config, refreshConfig }: { config: AdminConfig | null; refreshConfig: () => Promise<void> }) => {
@@ -4110,9 +3968,9 @@ function AdminPageClient() {
               <VideoSourceConfig config={config} refreshConfig={fetchConfig} />
             </CollapsibleTab>
 
-            {/* 分类配置标签 */}
+            {/* 自定义筛选标签 */}
             <CollapsibleTab
-              title='分类配置'
+              title='自定义筛选'
               icon={
                 <FolderOpen
                   size={20}
@@ -4122,7 +3980,7 @@ function AdminPageClient() {
               isExpanded={expandedTabs.categoryConfig}
               onToggle={() => toggleTab('categoryConfig')}
             >
-              <CategoryConfig config={config} refreshConfig={fetchConfig} />
+              <CustomFilterConfig config={config} refreshConfig={fetchConfig} />
             </CollapsibleTab>
 
             {/* 数据迁移标签 - 仅站长可见 */}
