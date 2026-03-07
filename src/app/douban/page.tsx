@@ -192,7 +192,7 @@ function DoubanPageClient() {
         snapshot1.selectedWeekday === snapshot2.selectedWeekday &&
         snapshot1.currentPage === snapshot2.currentPage &&
         JSON.stringify(snapshot1.multiLevelSelection) ===
-          JSON.stringify(snapshot2.multiLevelSelection)
+        JSON.stringify(snapshot2.multiLevelSelection)
       );
     },
     []
@@ -210,8 +210,8 @@ function DoubanPageClient() {
             type === 'minitv'
               ? '短剧'
               : secondarySelection === '全部'
-              ? type
-              : secondarySelection,
+                ? type
+                : secondarySelection,
           pageLimit: 25,
           pageStart,
         };
@@ -327,10 +327,10 @@ function DoubanPageClient() {
             type === 'show'
               ? '综艺'
               : type === 'minitv'
-              ? '短剧'
-              : type === 'tv'
-              ? '电视剧'
-              : '',
+                ? '短剧'
+                : type === 'tv'
+                  ? '电视剧'
+                  : '',
           region: multiLevelValues.region
             ? (multiLevelValues.region as string)
             : '',
@@ -491,10 +491,10 @@ function DoubanPageClient() {
                 type === 'show'
                   ? '综艺'
                   : type === 'minitv'
-                  ? '短剧'
-                  : type === 'tv'
-                  ? '电视剧'
-                  : '',
+                    ? '短剧'
+                    : type === 'tv'
+                      ? '电视剧'
+                      : '',
               region: multiLevelValues.region
                 ? (multiLevelValues.region as string)
                 : '',
@@ -752,24 +752,24 @@ function DoubanPageClient() {
           <div className='justify-start grid grid-cols-3 gap-x-2 gap-y-12 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8 sm:gap-y-20'>
             {loading || !selectorsReady
               ? // 显示骨架屏
-                skeletonData.map((index) => <DoubanCardSkeleton key={index} />)
+              skeletonData.map((index) => <DoubanCardSkeleton key={index} />)
               : // 显示实际数据
-                doubanData.map((item, index) => (
-                  <div key={`${item.title}-${index}`} className='w-full'>
-                    <VideoCard
-                      from='douban'
-                      title={item.title}
-                      poster={item.poster}
-                      douban_id={Number(item.id)}
-                      rate={item.rate}
-                      year={item.year}
-                      type={type === 'movie' ? 'movie' : ''} // 电影类型严格控制，tv 不控
-                      isBangumi={
-                        type === 'anime' && primarySelection === '每日放送'
-                      }
-                    />
-                  </div>
-                ))}
+              doubanData.map((item, index) => (
+                <div key={`${item.title}-${index}`} className='w-full'>
+                  <VideoCard
+                    from='douban'
+                    title={item.title}
+                    poster={item.poster}
+                    douban_id={Number(item.id)}
+                    rate={item.rate}
+                    year={item.year}
+                    type={type === 'movie' ? 'movie' : ''} // 电影类型严格控制，tv 不控
+                    isBangumi={
+                      type === 'anime' && primarySelection === '每日放送'
+                    }
+                  />
+                </div>
+              ))}
           </div>
 
           {/* 加载更多指示器 */}

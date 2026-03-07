@@ -323,10 +323,8 @@ function PlayPageClient() {
     console.log('播放源评分排序结果:');
     resultsWithScore.forEach((result, index) => {
       console.log(
-        `${index + 1}. ${
-          result.source.source_name
-        } - 评分: ${result.score.toFixed(2)} (${result.testResult.quality}, ${
-          result.testResult.loadSpeed
+        `${index + 1}. ${result.source.source_name
+        } - 评分: ${result.score.toFixed(2)} (${result.testResult.quality}, ${result.testResult.loadSpeed
         }, ${result.testResult.pingTime}ms)`
       );
     });
@@ -685,13 +683,13 @@ function PlayPageClient() {
         const results = data.results.filter(
           (result: SearchResult) =>
             result.title.replaceAll(' ', '').toLowerCase() ===
-              videoTitleRef.current.replaceAll(' ', '').toLowerCase() &&
+            videoTitleRef.current.replaceAll(' ', '').toLowerCase() &&
             (videoYearRef.current
               ? result.year.toLowerCase() === videoYearRef.current.toLowerCase()
               : true) &&
             (searchType
               ? (searchType === 'tv' && result.episodes.length > 1) ||
-                (searchType === 'movie' && result.episodes.length === 1)
+              (searchType === 'movie' && result.episodes.length === 1)
               : true)
         );
         setAvailableSources(results);
@@ -1259,9 +1257,8 @@ function PlayPageClient() {
     // 非WebKit浏览器且播放器已存在，使用switch方法切换
     if (!isWebkit && artPlayerRef.current) {
       artPlayerRef.current.switch = videoUrl;
-      artPlayerRef.current.title = `${videoTitle} - 第${
-        currentEpisodeIndex + 1
-      }集`;
+      artPlayerRef.current.title = `${videoTitle} - 第${currentEpisodeIndex + 1
+        }集`;
       artPlayerRef.current.poster = videoCover;
       if (artPlayerRef.current?.video) {
         ensureVideoSource(
@@ -1588,7 +1585,7 @@ function PlayPageClient() {
           skipConfigRef.current.outro_time < 0 &&
           duration > 0 &&
           currentTime >
-            artPlayerRef.current.duration + skipConfigRef.current.outro_time
+          artPlayerRef.current.duration + skipConfigRef.current.outro_time
         ) {
           if (
             currentEpisodeIndexRef.current <
@@ -1702,30 +1699,27 @@ function PlayPageClient() {
             <div className='mb-6 w-80 mx-auto'>
               <div className='flex justify-center space-x-2 mb-4'>
                 <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                    loadingStage === 'searching' || loadingStage === 'fetching'
+                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'searching' || loadingStage === 'fetching'
                       ? 'bg-green-500 scale-125'
                       : loadingStage === 'preferring' ||
                         loadingStage === 'ready'
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
-                  }`}
+                        ? 'bg-green-500'
+                        : 'bg-gray-300'
+                    }`}
                 ></div>
                 <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                    loadingStage === 'preferring'
+                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'preferring'
                       ? 'bg-green-500 scale-125'
                       : loadingStage === 'ready'
-                      ? 'bg-green-500'
-                      : 'bg-gray-300'
-                  }`}
+                        ? 'bg-green-500'
+                        : 'bg-gray-300'
+                    }`}
                 ></div>
                 <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                    loadingStage === 'ready'
+                  className={`w-3 h-3 rounded-full transition-all duration-500 ${loadingStage === 'ready'
                       ? 'bg-green-500 scale-125'
                       : 'bg-gray-300'
-                  }`}
+                    }`}
                 ></div>
               </div>
 
@@ -1736,11 +1730,11 @@ function PlayPageClient() {
                   style={{
                     width:
                       loadingStage === 'searching' ||
-                      loadingStage === 'fetching'
+                        loadingStage === 'fetching'
                         ? '33%'
                         : loadingStage === 'preferring'
-                        ? '66%'
-                        : '100%',
+                          ? '66%'
+                          : '100%',
                   }}
                 ></div>
               </div>
@@ -1828,30 +1822,28 @@ function PlayPageClient() {
 
   return (
     <PageLayout activePath='/play'>
-      <div className='flex flex-col h-full max-h-screen py-4 px-5 lg:px-[3rem] 2xl:px-20'>
-        {/* 第一行：影片标题 */}
-        <div className='py-1 flex-shrink-0 flex flex-wrap items-center justify-between gap-3'>
-          <h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center'>
-            {videoTitle || '影片标题'}
+      <div className='flex flex-col h-[max(100vh-56px,800px)] lg:h-[calc(100vh-64px)] overflow-hidden py-4 px-4 sm:px-5 lg:px-8 2xl:px-20'>
+        {/* 第一行：影片标题及操作按钮 */}
+        <div className='py-1 flex-shrink-0 flex flex-nowrap items-center justify-start gap-3 sm:gap-4 overflow-hidden'>
+          <h1 className='text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 flex flex-row items-center truncate'>
+            <span className='truncate'>{videoTitle || '影片标题'}</span>
             {totalEpisodes > 1 && (
-              <span className='text-gray-500 dark:text-gray-400 ml-2 text-lg'>
-                {`> ${
-                  detail?.episodes_titles?.[currentEpisodeIndex] ||
+              <span className='text-gray-500 dark:text-gray-400 ml-1 sm:ml-2 text-base sm:text-lg whitespace-nowrap'>
+                {`> ${detail?.episodes_titles?.[currentEpisodeIndex] ||
                   `第 ${currentEpisodeIndex + 1} 集`
-                }`}
+                  }`}
               </span>
             )}
           </h1>
           <button
             onClick={handleToggleFavorite}
-            className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0'
+            className='flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0'
             title={favorited ? '取消收藏' : '添加收藏'}
           >
             <FavoriteIcon filled={favorited} />
             <span
-              className={`text-sm font-medium ${
-                favorited ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'
-              }`}
+              className={`text-sm font-medium ${favorited ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'
+                }`}
             >
               {favorited ? '已收藏' : '收藏'}
             </span>
@@ -1859,9 +1851,9 @@ function PlayPageClient() {
         </div>
         {/* 第二行：播放器和选集 */}
         <div className='flex-1 min-h-0 flex flex-col pt-2'>
-          <div className='flex-1 min-h-0 grid gap-4 lg:h-[calc(100vh-140px)] grid-cols-1 md:grid-cols-4'>
+          <div className='flex-1 min-h-0 grid gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 lg:h-full lg:max-h-full'>
             {/* 播放器 */}
-            <div className='h-full flex flex-col min-h-0 rounded-xl border border-white/0 dark:border-white/30 md:col-span-3 lg:h-full lg:max-h-full'>
+            <div className='h-full flex flex-col min-h-0 rounded-xl border border-white/0 dark:border-white/30 md:col-span-3 lg:col-span-3 lg:h-full lg:max-h-full'>
               <div className='relative w-full h-[300px] lg:h-full'>
                 <div
                   ref={artRef}

@@ -20,9 +20,9 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   const navItems = [
     { icon: Home, label: '首页', href: '/' },
-    { icon: Heart, label: '收藏', href: '/favorites' },
+    { icon: Filter, label: '选片', href: '/douban' },
     { icon: Search, label: '搜索', href: '/search' },
-    { icon: Filter, label: '筛选', href: '/douban' },
+    { icon: Heart, label: '收藏', href: '/favorites' },
     { icon: User, label: '我的', href: '/settings' },
   ];
 
@@ -58,11 +58,10 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
                 className='flex flex-col items-center justify-center w-full h-14 gap-1 text-xs'
               >
                 <item.icon
-                  className={`h-6 w-6 ${
-                    active
+                  className={`h-6 w-6 ${active
                       ? 'text-green-600 dark:text-green-400'
                       : 'text-gray-500 dark:text-gray-400'
-                  }`}
+                    }`}
                 />
                 <span
                   className={

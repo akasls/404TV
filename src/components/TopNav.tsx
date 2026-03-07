@@ -58,13 +58,13 @@ const TopNav = ({ activePath = '/' }: TopNavProps) => {
 
   const navItems = [
     { icon: Home, label: '首页', href: '/' },
-    { icon: Heart, label: '收藏', href: '/favorites' },
+    { icon: Filter, label: '选片', href: '/douban' },
     { icon: Search, label: '搜索', href: '/search', onClick: handleSearchClick },
-    { icon: Filter, label: '筛选', href: '/douban' },
+    { icon: Heart, label: '收藏', href: '/favorites' },
   ];
 
   return (
-    <header className='hidden md:flex fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 z-[100] shadow-sm items-center px-6 justify-between transition-colors duration-300 dark:bg-gray-900/80 dark:border-gray-700/50'>
+    <header className='hidden md:flex fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 z-[1000] shadow-sm items-center px-6 justify-between transition-colors duration-300 dark:bg-gray-900/80 dark:border-gray-700/50'>
       {/* 左侧 Logo 和 导航链接 */}
       <div className='flex items-center gap-8 h-full'>
         <Logo />
@@ -102,14 +102,14 @@ const TopNav = ({ activePath = '/' }: TopNavProps) => {
                   }
                 }}
                 className={`group flex items-center rounded-full px-4 text-sm font-medium transition-colors duration-200 h-10 ${isActive
-                    ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400'
-                    : 'text-gray-700 hover:bg-gray-100/50 hover:text-green-600 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-green-400'
+                  ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400'
+                  : 'text-gray-700 hover:bg-gray-100/50 hover:text-green-600 dark:text-gray-300 dark:hover:bg-gray-800/50 dark:hover:text-green-400'
                   } gap-2`}
               >
                 <Icon
                   className={`h-4 w-4 ${isActive
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-gray-500 group-hover:text-green-600 dark:text-gray-400 dark:group-hover:text-green-400'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-gray-500 group-hover:text-green-600 dark:text-gray-400 dark:group-hover:text-green-400'
                     }`}
                 />
                 <span className='whitespace-nowrap'>{item.label}</span>
