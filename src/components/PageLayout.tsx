@@ -1,6 +1,4 @@
-import { BackButton } from './BackButton';
 import MobileBottomNav from './MobileBottomNav';
-import MobileHeader from './MobileHeader';
 import TopNav from './TopNav';
 
 interface PageLayoutProps {
@@ -11,9 +9,6 @@ interface PageLayoutProps {
 const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
   return (
     <div className='w-full min-h-screen'>
-      {/* 移动端头部 */}
-      <MobileHeader showBackButton={['/play'].includes(activePath)} />
-
       {/* 主要布局容器 */}
       <div className='flex flex-col w-full min-h-screen md:min-h-auto'>
         {/* 顶部导航 - 桌面端显示，移动端隐藏 */}
@@ -21,16 +16,9 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
 
         {/* 主内容区域 */}
         <div className='relative min-w-0 flex-1 transition-all duration-300'>
-          {/* 桌面端左上角返回按钮 */}
-          {['/play'].includes(activePath) && (
-            <div className='absolute top-3 left-4 z-20 hidden md:flex md:top-20'>
-              <BackButton />
-            </div>
-          )}
-
           {/* 主内容 */}
           <main
-            className='flex-1 md:min-h-0 mb-14 md:mb-0 mt-12 md:mt-20 mx-auto w-full max-w-[1600px] px-2 md:px-6'
+            className='flex-1 md:min-h-0 mb-14 md:mb-0 mt-4 md:mt-20 mx-auto w-full max-w-[1600px] px-2 md:px-6'
             style={{
               paddingBottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
             }}

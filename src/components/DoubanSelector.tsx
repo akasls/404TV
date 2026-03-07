@@ -13,7 +13,7 @@ interface SelectorOption {
 }
 
 interface DoubanSelectorProps {
-  type: 'movie' | 'tv' | 'show' | 'anime';
+  type: 'movie' | 'tv' | 'show' | 'anime' | 'minitv';
   primarySelection?: string;
   secondarySelection?: string;
   onPrimaryChange: (value: string) => void;
@@ -92,6 +92,17 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
     { label: '全部', value: 'show' },
     { label: '国内', value: 'show_domestic' },
     { label: '国外', value: 'show_foreign' },
+  ];
+
+  // 短剧一级选择器选项
+  const minitvPrimaryOptions: SelectorOption[] = [
+    { label: '全部', value: '全部' },
+    { label: '最近热门', value: '最近热门' },
+  ];
+
+  // 短剧二级选择器选项
+  const minitvSecondaryOptions: SelectorOption[] = [
+    { label: '全部', value: 'tv_miniseries' },
   ];
 
   // 动漫一级选择器选项
@@ -184,6 +195,17 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
         primaryButtonRefs,
         setPrimaryIndicatorStyle
       );
+    } else if (type === 'minitv') {
+      const activeIndex = minitvPrimaryOptions.findIndex(
+        (opt) =>
+          opt.value === (primarySelection || minitvPrimaryOptions[0].value)
+      );
+      updateIndicatorPosition(
+        activeIndex,
+        primaryContainerRef,
+        primaryButtonRefs,
+        setPrimaryIndicatorStyle
+      );
     }
 
     // 副选择器初始位置
@@ -202,6 +224,11 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
       secondaryActiveIndex = showSecondaryOptions.findIndex(
         (opt) =>
           opt.value === (secondarySelection || showSecondaryOptions[0].value)
+      );
+    } else if (type === 'minitv') {
+      secondaryActiveIndex = minitvSecondaryOptions.findIndex(
+        (opt) =>
+          opt.value === (secondarySelection || minitvSecondaryOptions[0].value)
       );
     }
 
@@ -261,6 +288,17 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
         setPrimaryIndicatorStyle
       );
       return cleanup;
+    } else if (type === 'minitv') {
+      const activeIndex = minitvPrimaryOptions.findIndex(
+        (opt) => opt.value === primarySelection
+      );
+      const cleanup = updateIndicatorPosition(
+        activeIndex,
+        primaryContainerRef,
+        primaryButtonRefs,
+        setPrimaryIndicatorStyle
+      );
+      return cleanup;
     }
   }, [primarySelection]);
 
@@ -284,6 +322,11 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
         (opt) => opt.value === secondarySelection
       );
       options = showSecondaryOptions;
+    } else if (type === 'minitv') {
+      activeIndex = minitvSecondaryOptions.findIndex(
+        (opt) => opt.value === secondarySelection
+      );
+      options = minitvSecondaryOptions;
     }
 
     if (options.length > 0) {
@@ -554,6 +597,56 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
                   key={`${type}-${primarySelection}`}
                   onChange={handleMultiLevelChange}
                   contentType={type}
+                />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {/* 短剧类型 */}
+      {type === 'minitv' && (
+        <div className='space-y-3 sm:space-y-4'>
+          {/* 一级选择器 */}
+          <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
+            <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
+              分类
+            </span>
+            <div className='overflow-x-auto'>
+              {renderCapsuleSelector(
+                minitvPrimaryOptions,
+                primarySelection || minitvPrimaryOptions[0].value,
+                onPrimaryChange,
+                true
+              )}
+            </div>
+          </div>
+
+          {/* 二级选择器 */}
+          {primarySelection === '最近热门' ? (
+            <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
+              <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
+                类型
+              </span>
+              <div className='overflow-x-auto'>
+                {renderCapsuleSelector(
+                  minitvSecondaryOptions,
+                  secondarySelection || minitvSecondaryOptions[0].value,
+                  onSecondaryChange,
+                  false
+                )}
+              </div>
+            </div>
+          ) : primarySelection === '全部' ? (
+            <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
+              <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
+                筛选
+              </span>
+              <div className='overflow-x-auto'>
+                <MultiLevelSelector
+                  key={`${type}-${primarySelection}`}
+                  onChange={handleMultiLevelChange}
+                  contentType='tv'
                 />
               </div>
             </div>

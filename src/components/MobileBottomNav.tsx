@@ -2,7 +2,7 @@
 
 'use client';
 
-import { Filter, Heart, Home, Search } from 'lucide-react';
+import { Filter, Heart, Home, Search, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -23,6 +23,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
     { icon: Heart, label: '收藏', href: '/favorites' },
     { icon: Search, label: '搜索', href: '/search' },
     { icon: Filter, label: '筛选', href: '/douban' },
+    { icon: User, label: '我的', href: '/settings' },
   ];
 
   const isActive = (href: string) => {
@@ -57,10 +58,11 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
                 className='flex flex-col items-center justify-center w-full h-14 gap-1 text-xs'
               >
                 <item.icon
-                  className={`h-6 w-6 ${active
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-gray-500 dark:text-gray-400'
-                    }`}
+                  className={`h-6 w-6 ${
+                    active
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}
                 />
                 <span
                   className={
