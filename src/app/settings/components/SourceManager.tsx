@@ -92,7 +92,7 @@ export default function SourceManager() {
             onClick={handleToggleAll}
             className='px-3 py-1.5 text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors'
           >
-            {enabledKeys.length === sources.length ? '全部取消' : '全部选择'}
+            {enabledKeys.length === sources.length ? '全部停用' : '全部启用'}
           </button>
         )}
       </div>

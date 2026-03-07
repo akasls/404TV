@@ -2,7 +2,7 @@
 
 'use client';
 
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Cat, MonitorPlay } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -93,7 +93,7 @@ function HomeClient() {
                   热门电影
                 </h2>
                 <Link
-                  href={`/douban?type=movie`}
+                  href={`/douban?type=movie&category=热门`}
                   className='text-sm text-gray-500 hover:text-green-500 transition-colors flex items-center group'
                 >
                   查看更多
@@ -137,11 +137,12 @@ function HomeClient() {
             {/* 热门剧集 */}
             <section className='mb-8'>
               <div className='mb-4 flex items-center justify-between'>
-                <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
-                  热门剧集
+                <h2 className='text-xl sm:text-2xl font-bold flex items-center text-gray-900 dark:text-white drop-shadow-sm'>
+                  <MonitorPlay className='w-6 h-6 mr-2 text-green-500' />
+                  热门电视剧
                 </h2>
                 <Link
-                  href={`/douban?type=tv`}
+                  href={`/douban?type=tv&category=最近热门`}
                   className='text-sm text-gray-500 hover:text-green-500 transition-colors flex items-center group'
                 >
                   查看更多
@@ -184,11 +185,12 @@ function HomeClient() {
             {/* 每日新番放送 */}
             <section className='mb-8'>
               <div className='mb-4 flex items-center justify-between'>
-                <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
-                  新番放送
+                <h2 className='text-xl sm:text-2xl font-bold flex items-center text-gray-900 dark:text-white drop-shadow-sm'>
+                  <Cat className='w-6 h-6 mr-2 text-green-500' />
+                  动漫新番
                 </h2>
                 <Link
-                  href={`/douban?type=anime`}
+                  href={`/douban?type=anime&category=每日放送`}
                   className='text-sm text-gray-500 hover:text-green-500 transition-colors flex items-center group'
                 >
                   查看更多

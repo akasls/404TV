@@ -61,7 +61,7 @@ export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoPr
     }
   };
 
-  const showChangePassword = authInfo?.role !== 'owner' && storageType !== 'localstorage';
+  const showChangePassword = storageType !== 'localstorage';
 
   return (
     <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 relative overflow-hidden'>
@@ -83,10 +83,10 @@ export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoPr
         <div className='mt-2 flex gap-2'>
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(authInfo?.role || 'user') === 'owner'
-                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                : (authInfo?.role || 'user') === 'admin'
-                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                  : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+              : (authInfo?.role || 'user') === 'admin'
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
               }`}
           >
             {getRoleText(authInfo?.role || 'user')}
@@ -145,8 +145,8 @@ export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoPr
                   onClick={handleSubmitChangePassword}
                   disabled={passwordLoading}
                   className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold text-white transition-all ${passwordLoading
-                      ? 'bg-green-400 cursor-not-allowed'
-                      : 'bg-green-500 hover:bg-green-600 shadow-sm hover:shadow active:scale-[0.98]'
+                    ? 'bg-green-400 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600 shadow-sm hover:shadow active:scale-[0.98]'
                     }`}
                 >
                   {passwordLoading ? '提交中...' : '确认修改'}

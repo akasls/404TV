@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Heart } from 'lucide-react';
 
 import { SearchResult } from '@/lib/types';
 import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
@@ -44,6 +45,8 @@ interface EpisodeSelectorProps {
   precomputedVideoInfo?: Map<string, VideoInfo>;
   videoDetail?: SearchResult | null;
   videoCover?: string;
+  favorited?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 /**
@@ -65,6 +68,8 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   precomputedVideoInfo,
   videoDetail,
   videoCover,
+  favorited = false,
+  onToggleFavorite,
 }) => {
   const router = useRouter();
   const pageCount = Math.ceil(totalEpisodes / episodesPerPage);
@@ -366,20 +371,9 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
               }
             `.trim()}
           >
-            选集
+            换集
           </div>
         )}
-        <div
-          onClick={handleSourceTabClick}
-          className={`flex-1 py-3 px-6 text-center cursor-pointer transition-all duration-200 font-medium
-            ${activeTab === 'sources'
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-gray-700 hover:text-green-600 bg-black/5 dark:bg-white/5 dark:text-gray-300 dark:hover:text-green-400 hover:bg-black/3 dark:hover:bg-white/3'
-            }
-          `.trim()}
-        >
-          换源
-        </div>
         <div
           onClick={() => setActiveTab('intro')}
           className={`flex-1 py-3 px-6 text-center cursor-pointer transition-all duration-200 font-medium
@@ -390,6 +384,17 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
           `.trim()}
         >
           介绍
+        </div>
+        <div
+          onClick={handleSourceTabClick}
+          className={`flex-1 py-3 px-6 text-center cursor-pointer transition-all duration-200 font-medium
+            ${activeTab === 'sources'
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-gray-700 hover:text-green-600 bg-black/5 dark:bg-white/5 dark:text-gray-300 dark:hover:text-green-400 hover:bg-black/3 dark:hover:bg-white/3'
+            }
+          `.trim()}
+        >
+          换源
         </div>
       </div>
 
@@ -710,9 +715,41 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
 
             {/* 详细信息 */}
             <div className='space-y-3 px-2'>
-              <h2 className='text-xl font-bold text-gray-900 dark:text-gray-100 text-center md:text-left'>
-                {videoDetail?.title || videoTitle}
-              </h2>
+              <div className='flex items-center justify-center md:justify-start gap-3'>
+                <h2 className='text-xl font-bold text-gray-900 dark:text-gray-100'>
+                  {videoDetail?.title || videoTitle}
+                </h2>
+                <button
+                  onClick={onToggleFavorite}
+                  className='flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0'
+                  title={favorited ? '取消收藏' : '添加收藏'}
+                >
+                  {favorited ? (
+                    <svg
+                      className='h-7 w-7'
+                      viewBox='0 0 24 24'
+                      xmlns='http://www.w3.org/2000/svg'
+                    >
+                      <path
+                        d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'
+                        fill='#ef4444'
+                        stroke='#ef4444'
+                        strokeWidth='2'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                      />
+                    </svg>
+                  ) : (
+                    <Heart className='h-7 w-7 stroke-[1] text-gray-600 dark:text-gray-300' />
+                  )}
+                  <span
+                    className={`text-sm font-medium ${favorited ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'
+                      }`}
+                  >
+                    {favorited ? '已收藏' : '收藏'}
+                  </span>
+                </button>
+              </div>
 
               <div className='flex justify-center md:justify-start flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400'>
                 {videoDetail?.class && (
