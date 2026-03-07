@@ -32,6 +32,8 @@ COPY . .
 RUN npx prisma generate
 
 ENV DOCKER_ENV=true
+ENV DATABASE_URL="file:/app/data/404tv.db"
+ENV NEXT_PUBLIC_STORAGE_TYPE="sqlite"
 
 # 生成生产构建
 RUN pnpm run build
