@@ -15,50 +15,73 @@ export async function GET(request: NextRequest) {
 
     const config = await getConfig();
 
-    // 获取所有启用的源
-    const allSources = config.SourceConfig.filter((s) => !s.disabled).map(s => ({
-      key: s.key,
-      name: s.name,
-      api: s.api,
-      detail: s.detail,
-    }));
+    // 1. 获取全局所有启用的源
+    const globalSources = config.SourceConfig.filter((s) => !s.disabled).map(
+      (s) => ({
+        key: s.key,
+        name: s.name,
+        api: s.api,
+        detail: s.detail,
+      })
+    );
 
-    const userConfig = config.UserConfig.Users.find((u) => u.username === authInfo.username);
-    let userEnabledKeys: string[] = [];
+    const userConfig = config.UserConfig.Users.find(
+      (u) => u.username === authInfo.username
+    );
 
-    if (userConfig) {
-      if (userConfig.enabledApis && userConfig.enabledApis.length > 0) {
-        // 如果用户有自己的配置，则使用用的专属配置
-        userEnabledKeys = userConfig.enabledApis;
-      } else if (userConfig.tags && userConfig.tags.length > 0 && config.UserConfig.Tags) {
-        // 如果没有则尝试使用用户的标签组配置
-        const enabledApisFromTags = new Set<string>();
-        userConfig.tags.forEach(tagName => {
-          const tagConfig = config.UserConfig.Tags?.find(t => t.name === tagName);
-          if (tagConfig && tagConfig.enabledApis) {
-            tagConfig.enabledApis.forEach(apiKey => enabledApisFromTags.add(apiKey));
-          }
-        });
-        userEnabledKeys = Array.from(enabledApisFromTags);
-      } else {
-        // 否则默认拥有全部启用的源权限
-        userEnabledKeys = allSources.map(s => s.key);
-      }
+    // 2. 计算管理员赋予该用户的"许可范围" (permitted keys)
+    let permittedKeys: string[] = [];
+    if (
+      userConfig &&
+      userConfig.tags &&
+      userConfig.tags.length > 0 &&
+      config.UserConfig.Tags
+    ) {
+      const tagApis = new Set<string>();
+      userConfig.tags.forEach((tagName) => {
+        const tagConfig = config.UserConfig.Tags?.find(
+          (t) => t.name === tagName
+        );
+        if (tagConfig && tagConfig.enabledApis) {
+          tagConfig.enabledApis.forEach((k) => tagApis.add(k));
+        }
+      });
+      permittedKeys = Array.from(tagApis);
     } else {
-      userEnabledKeys = allSources.map(s => s.key);
+      // 如果没有任何 tags 限制，默认全量开放
+      permittedKeys = globalSources.map((s) => s.key);
     }
 
-    // 过滤掉已经在 admin 端被 disabled 或删除的源 key
-    const allSourceKeys = new Set(allSources.map(s => s.key));
-    userEnabledKeys = userEnabledKeys.filter(k => allSourceKeys.has(k));
+    // 3. 用户实际能看到的 sources 面板只能是 permitted 的子集
+    const allSources = globalSources.filter((s) =>
+      permittedKeys.includes(s.key)
+    );
+
+    // 4. 用户自己手工开关的状态（必须被 permitted 约束）
+    let userEnabledKeys: string[] = [];
+    if (
+      userConfig &&
+      userConfig.enabledApis &&
+      userConfig.enabledApis.length > 0
+    ) {
+      userEnabledKeys = userConfig.enabledApis.filter((k) =>
+        permittedKeys.includes(k)
+      );
+    } else {
+      userEnabledKeys = permittedKeys; // 如果没改设过，默认也是全部许可的源
+    }
 
     return NextResponse.json({
-      allSources,
-      userEnabledKeys,
+      allSources, // 传给前端列表：仅为该用户允许接触的源
+      userEnabledKeys, // 用户开启的源
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('获取用户视频源设置失败:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -76,7 +99,9 @@ export async function POST(request: NextRequest) {
     }
 
     const config = await getConfig();
-    const userIndex = config.UserConfig.Users.findIndex((u) => u.username === authInfo.username);
+    const userIndex = config.UserConfig.Users.findIndex(
+      (u) => u.username === authInfo.username
+    );
 
     if (userIndex === -1) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -91,7 +116,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('更新用户视频源设置失败:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

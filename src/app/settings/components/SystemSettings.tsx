@@ -4560,7 +4560,7 @@ const SiteConfigComponent = ({
       <div>
         <div className='flex items-center justify-between'>
           <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-            访问码防护（限制访客）
+            开放访问
           </label>
           <button
             type='button'
@@ -4571,7 +4571,7 @@ const SiteConfigComponent = ({
               }))
             }
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-              !siteSettings.GuestAccess
+              siteSettings.GuestAccess
                 ? buttonStyles.toggleOn
                 : buttonStyles.toggleOff
             }`}
@@ -4580,7 +4580,7 @@ const SiteConfigComponent = ({
               className={`inline-block h-4 w-4 transform rounded-full ${
                 buttonStyles.toggleThumb
               } transition-transform ${
-                !siteSettings.GuestAccess
+                siteSettings.GuestAccess
                   ? buttonStyles.toggleThumbOn
                   : buttonStyles.toggleThumbOff
               }`}
@@ -4588,29 +4588,21 @@ const SiteConfigComponent = ({
           </button>
         </div>
         <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-          开启后必须登录（或输入访问码）才可进入站点。关闭则对所有人开放。
+          开启后所有人免登录即可进入站点观影。关闭则必须提供账号密码登录。
         </p>
       </div>
 
       {/* 频道排序 */}
       <div className='pt-2'>
         <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-          频道排序声明 (以逗号分隔)
+          频道排序
         </label>
-        <input
-          type='text'
-          placeholder='movie, tv, anime, show, 短剧'
-          value={(siteSettings.ChannelOrder || []).join(', ')}
-          onChange={(e) =>
-            setSiteSettings((prev) => ({
-              ...prev,
-              ChannelOrder: e.target.value
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean),
-            }))
+        <DraggableChannelList
+          channelOrder={siteSettings.ChannelOrder}
+          setChannelOrder={(val: string[]) =>
+            setSiteSettings((prev) => ({ ...prev, ChannelOrder: val }))
           }
-          className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+          customFilters={config.CustomFilters || []}
         />
         <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
           控制选片顶部频道的先后顺序。支持填入系统默认(movie, tv, anime,
@@ -4974,6 +4966,85 @@ function AdminPageClient() {
     </>
   );
 }
+
+const DraggableChannelList = ({
+  channelOrder,
+  setChannelOrder,
+  customFilters,
+}: any) => {
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+
+  const available = useMemo(() => {
+    const defaults = [
+      { id: 'movie', label: '电影' },
+      { id: 'tv', label: '电视剧' },
+      { id: 'minitv', label: '短剧' },
+      { id: 'anime', label: '动漫' },
+      { id: 'show', label: '综艺' },
+    ];
+    const customs = customFilters.map((f: any) => ({
+      id: f.name,
+      label: f.name,
+    }));
+    return [...defaults, ...customs];
+  }, [customFilters]);
+
+  // Sync missing items
+  const items = useMemo(() => {
+    const list = [...(channelOrder || [])];
+    if (list.length === 0) {
+      list.push('movie', 'tv', 'minitv', 'anime', 'show'); // default fallback
+    }
+    available.forEach((a) => {
+      if (!list.includes(a.id)) list.push(a.id);
+    });
+    return list.filter((id) => available.some((a) => a.id === id));
+  }, [channelOrder, available]);
+
+  const onDragStart = (e: React.DragEvent, idx: number) => {
+    setDraggedIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const onDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === idx) return;
+
+    const newList = [...items];
+    const [removed] = newList.splice(draggedIdx, 1);
+    newList.splice(idx, 0, removed);
+
+    setChannelOrder(newList);
+    setDraggedIdx(idx);
+  };
+
+  const onDragEnd = () => {
+    setDraggedIdx(null);
+  };
+
+  return (
+    <div className='flex flex-wrap gap-2 w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 shadow-inner min-h-[50px]'>
+      {items.map((id, idx) => {
+        const info = available.find((a) => a.id === id);
+        if (!info) return null;
+        return (
+          <div
+            key={id}
+            draggable
+            onDragStart={(e) => onDragStart(e, idx)}
+            onDragOver={(e) => onDragOver(e, idx)}
+            onDragEnd={onDragEnd}
+            className={`cursor-move px-4 py-2 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/40 dark:to-green-800/20 border border-green-200 dark:border-green-700/50 rounded-lg shadow-sm text-sm font-semibold text-green-800 dark:text-green-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+              draggedIdx === idx ? 'opacity-30 scale-95' : 'scale-100'
+            }`}
+          >
+            {info.label}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export default function SystemSettings() {
   return (

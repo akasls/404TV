@@ -346,47 +346,37 @@ export async function getAvailableApiSites(user?: string): Promise<ApiSite[]> {
     return allApiSites;
   }
 
-  // 优先根据用户自己的 enabledApis 配置查找
-  if (userConfig.enabledApis && userConfig.enabledApis.length > 0) {
-    const userApiSitesSet = new Set(userConfig.enabledApis);
-    return allApiSites
-      .filter((s) => userApiSitesSet.has(s.key))
-      .map((s) => ({
-        key: s.key,
-        name: s.name,
-        api: s.api,
-        detail: s.detail,
-      }));
-  }
-
-  // 如果没有 enabledApis 配置，则根据 tags 查找
+  // 1. 计算管理员赋予该用户的"许可范围" (permitted keys)
+  let permittedKeys: string[] = [];
   if (userConfig.tags && userConfig.tags.length > 0 && config.UserConfig.Tags) {
-    const enabledApisFromTags = new Set<string>();
-
-    // 遍历用户的所有 tags，收集对应的 enabledApis
+    const tagApis = new Set<string>();
     userConfig.tags.forEach((tagName) => {
       const tagConfig = config.UserConfig.Tags?.find((t) => t.name === tagName);
       if (tagConfig && tagConfig.enabledApis) {
-        tagConfig.enabledApis.forEach((apiKey) =>
-          enabledApisFromTags.add(apiKey)
-        );
+        tagConfig.enabledApis.forEach((k) => tagApis.add(k));
       }
     });
-
-    if (enabledApisFromTags.size > 0) {
-      return allApiSites
-        .filter((s) => enabledApisFromTags.has(s.key))
-        .map((s) => ({
-          key: s.key,
-          name: s.name,
-          api: s.api,
-          detail: s.detail,
-        }));
-    }
+    permittedKeys = Array.from(tagApis);
+  } else {
+    // 如果没有任何 tags 限制，默认全量开放
+    permittedKeys = allApiSites.map((s) => s.key);
   }
 
-  // 如果都没有配置，返回所有可用的 API 站点
-  return allApiSites;
+  // 2. 结合用户自己手工开关的状态（必须被 permitted 约束）
+  let finalKeys = permittedKeys;
+  if (userConfig.enabledApis && userConfig.enabledApis.length > 0) {
+    finalKeys = userConfig.enabledApis.filter((k) => permittedKeys.includes(k));
+  }
+
+  const finalKeysSet = new Set(finalKeys);
+  return allApiSites
+    .filter((s) => finalKeysSet.has(s.key))
+    .map((s) => ({
+      key: s.key,
+      name: s.name,
+      api: s.api,
+      detail: s.detail,
+    }));
 }
 
 export async function setCachedConfig(config: AdminConfig) {
