@@ -437,8 +437,8 @@ async function fetchDoubanRecommends(
   const reqParams = new URLSearchParams();
   reqParams.append('refresh', '0');
   reqParams.append('start', pageStart.toString());
-  // Overfetch by roughly 10 items to compensate for ad injection without heavy loop recursion
-  reqParams.append('count', (pageLimit + 10).toString());
+  // Overfetch by roughly 26 items to compensate for ad injection without heavy loop recursion
+  reqParams.append('count', (pageLimit + 26).toString());
   reqParams.append('selected_categories', JSON.stringify(selectedCategories));
   reqParams.append('uncollect', 'false');
   reqParams.append('score_range', '0,10');

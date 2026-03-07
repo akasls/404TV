@@ -113,12 +113,6 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: '源不存在' }, { status: 404 });
         }
         // 允许编辑系统默认源
-        // if (entry.from === 'config') {
-        //   return NextResponse.json(
-        //     { error: '该系统源不可编辑' },
-        //     { status: 400 }
-        //   );
-        // }
         entry.name = name;
         entry.api = api;
         entry.detail = detail;
@@ -152,9 +146,6 @@ export async function POST(request: NextRequest) {
         if (idx === -1)
           return NextResponse.json({ error: '源不存在' }, { status: 404 });
         // 允许删除系统默认源
-        // if (entry.from === 'config') {
-        //   return NextResponse.json({ error: '该源不可删除' }, { status: 400 });
-        // }
         adminConfig.SourceConfig.splice(idx, 1);
 
         // 检查并清理用户组和用户的权限数组

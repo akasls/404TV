@@ -126,8 +126,8 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab('user')}
               className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'user'
-                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
                 }`}
             >
               <UserIcon className='w-5 h-5' />
@@ -137,8 +137,8 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab('sources')}
               className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'sources'
-                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
                 }`}
             >
               <MonitorPlay className='w-5 h-5' />
@@ -148,8 +148,8 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab('local')}
               className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'local'
-                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
                 }`}
             >
               <SettingsIcon className='w-5 h-5' />
@@ -160,8 +160,8 @@ export default function SettingsPage() {
               <button
                 onClick={() => setActiveTab('system')}
                 className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'system'
-                    ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                    : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
                   }`}
               >
                 <Shield className='w-5 h-5' />
@@ -181,9 +181,7 @@ export default function SettingsPage() {
             )}
             {activeTab === 'sources' && <SourceManager />}
             {activeTab === 'local' && <LocalSettings />}
-            {activeTab === 'system' && showAdminPanel && (
-              <SystemSettings />
-            )}
+            {activeTab === 'system' && showAdminPanel && <SystemSettings />}
           </div>
         </div>
       </div>
