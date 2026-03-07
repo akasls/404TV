@@ -82,60 +82,58 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        <div className='grid grid-cols-1 lg:grid-cols-4 gap-8'>
-          {/* 左侧菜单 */}
-          <div className='lg:col-span-1 space-y-2'>
-            <nav className='flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-2 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 scrollbar-hide'>
+        <div className='flex flex-col space-y-6'>
+          {/* 顶部横向菜单 */}
+          <nav className='flex space-x-2 overflow-x-auto pb-2 scrollbar-hide border-b border-gray-100 dark:border-gray-800'>
+            <button
+              onClick={() => setActiveTab('user')}
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'user'
+                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                }`}
+            >
+              <UserIcon className='w-5 h-5' />
+              用户信息
+            </button>
+
+            <button
+              onClick={() => setActiveTab('sources')}
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'sources'
+                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                }`}
+            >
+              <MonitorPlay className='w-5 h-5' />
+              视频源
+            </button>
+
+            <button
+              onClick={() => setActiveTab('local')}
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'local'
+                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                }`}
+            >
+              <SettingsIcon className='w-5 h-5' />
+              本地设置
+            </button>
+
+            {showAdminPanel && (
               <button
-                onClick={() => setActiveTab('user')}
-                className={`flex-shrink-0 w-full lg:w-auto px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'user'
-                    ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
+                onClick={() => setActiveTab('system')}
+                className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'system'
+                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
                   }`}
               >
-                <UserIcon className='w-5 h-5' />
-                用户信息
+                <Shield className='w-5 h-5' />
+                管理员设置
               </button>
+            )}
+          </nav>
 
-              <button
-                onClick={() => setActiveTab('sources')}
-                className={`flex-shrink-0 w-full lg:w-auto px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'sources'
-                    ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
-                  }`}
-              >
-                <MonitorPlay className='w-5 h-5' />
-                视频源管理
-              </button>
-
-              <button
-                onClick={() => setActiveTab('local')}
-                className={`flex-shrink-0 w-full lg:w-auto px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'local'
-                    ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
-                  }`}
-              >
-                <SettingsIcon className='w-5 h-5' />
-                应用本地设置
-              </button>
-
-              {showAdminPanel && (
-                <button
-                  onClick={() => setActiveTab('system')}
-                  className={`flex-shrink-0 w-full lg:w-auto px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-xl transition-all ${activeTab === 'system'
-                      ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
-                    }`}
-                >
-                  <Shield className='w-5 h-5' />
-                  系统管理设置
-                </button>
-              )}
-            </nav>
-          </div>
-
-          {/* 右侧内容区域 */}
-          <div className='lg:col-span-3 min-h-[500px]'>
+          {/* 下部内容区域 */}
+          <div className='min-h-[500px]'>
             {activeTab === 'user' && (
               <UserInfo authInfo={authInfo} storageType={storageType} onLogout={handleLogout} />
             )}

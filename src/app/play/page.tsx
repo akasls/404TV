@@ -1821,78 +1821,80 @@ function PlayPageClient() {
 
   return (
     <PageLayout activePath='/play'>
-      <div className='flex flex-col h-[max(100vh-56px,800px)] lg:h-[calc(100vh-64px)] overflow-hidden py-4 px-4 sm:px-5 lg:px-8 2xl:px-20'>
-        {/* 第一行：播放器和选集 */}
-        <div className='flex-1 min-h-0 flex flex-col pt-2'>
-          <div className='flex-1 min-h-0 grid gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 lg:h-full lg:max-h-full'>
-            {/* 播放器 */}
-            <div className='h-full flex flex-col min-h-0 rounded-xl border border-white/0 dark:border-white/30 md:col-span-3 lg:col-span-3 lg:h-full lg:max-h-full'>
-              <div className='relative w-full h-[300px] lg:h-full'>
-                <div
-                  ref={artRef}
-                  className='bg-black w-full h-full rounded-xl overflow-hidden shadow-lg'
-                ></div>
+      <div className='flex items-center justify-center min-h-[calc(100vh-64px)]'>
+        <div className='flex flex-col w-full h-[max(100vh-56px,800px)] lg:h-[calc(100vh-64px)] overflow-hidden py-4 px-4 sm:px-5 lg:px-8 2xl:px-20'>
+          {/* 第一行：播放器和选集 */}
+          <div className='flex-1 min-h-0 flex flex-col pt-2'>
+            <div className='flex-1 min-h-0 grid gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 lg:h-full lg:max-h-full'>
+              {/* 播放器 */}
+              <div className='h-full flex flex-col min-h-0 rounded-xl border border-white/0 dark:border-white/30 md:col-span-3 lg:col-span-3 lg:h-full lg:max-h-full'>
+                <div className='relative w-full h-[300px] lg:h-full'>
+                  <div
+                    ref={artRef}
+                    className='bg-black w-full h-full rounded-xl overflow-hidden shadow-lg'
+                  ></div>
 
-                {/* 换源加载蒙层 */}
-                {isVideoLoading && (
-                  <div className='absolute inset-0 bg-black/85 backdrop-blur-sm rounded-xl flex items-center justify-center z-[500] transition-all duration-300'>
-                    <div className='text-center max-w-md mx-auto px-6'>
-                      {/* 动画影院图标 */}
-                      <div className='relative mb-8'>
-                        <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
-                          <div className='text-white text-4xl'>🎬</div>
-                          {/* 旋转光环 */}
-                          <div className='absolute -inset-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl opacity-20 animate-spin'></div>
+                  {/* 换源加载蒙层 */}
+                  {isVideoLoading && (
+                    <div className='absolute inset-0 bg-black/85 backdrop-blur-sm rounded-xl flex items-center justify-center z-[500] transition-all duration-300'>
+                      <div className='text-center max-w-md mx-auto px-6'>
+                        {/* 动画影院图标 */}
+                        <div className='relative mb-8'>
+                          <div className='relative mx-auto w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition-transform duration-300'>
+                            <div className='text-white text-4xl'>🎬</div>
+                            {/* 旋转光环 */}
+                            <div className='absolute -inset-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl opacity-20 animate-spin'></div>
+                          </div>
+
+                          {/* 浮动粒子效果 */}
+                          <div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
+                            <div className='absolute top-2 left-2 w-2 h-2 bg-green-400 rounded-full animate-bounce'></div>
+                            <div
+                              className='absolute top-4 right-4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce'
+                              style={{ animationDelay: '0.5s' }}
+                            ></div>
+                            <div
+                              className='absolute bottom-3 left-6 w-1 h-1 bg-lime-400 rounded-full animate-bounce'
+                              style={{ animationDelay: '1s' }}
+                            ></div>
+                          </div>
                         </div>
 
-                        {/* 浮动粒子效果 */}
-                        <div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
-                          <div className='absolute top-2 left-2 w-2 h-2 bg-green-400 rounded-full animate-bounce'></div>
-                          <div
-                            className='absolute top-4 right-4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce'
-                            style={{ animationDelay: '0.5s' }}
-                          ></div>
-                          <div
-                            className='absolute bottom-3 left-6 w-1 h-1 bg-lime-400 rounded-full animate-bounce'
-                            style={{ animationDelay: '1s' }}
-                          ></div>
+                        {/* 换源消息 */}
+                        <div className='space-y-2'>
+                          <p className='text-xl font-semibold text-white animate-pulse'>
+                            {videoLoadingStage === 'sourceChanging'
+                              ? '🔄 切换播放源...'
+                              : '🔄 视频加载中...'}
+                          </p>
                         </div>
-                      </div>
-
-                      {/* 换源消息 */}
-                      <div className='space-y-2'>
-                        <p className='text-xl font-semibold text-white animate-pulse'>
-                          {videoLoadingStage === 'sourceChanging'
-                            ? '🔄 切换播放源...'
-                            : '🔄 视频加载中...'}
-                        </p>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* 选集/换源/介绍 固定高度面板 */}
-            <div className='h-[400px] lg:h-full md:overflow-hidden md:col-span-1 transition-all duration-300 ease-in-out flex flex-col lg:max-h-full'>
-              <EpisodeSelector
-                totalEpisodes={totalEpisodes}
-                episodes_titles={detail?.episodes_titles || []}
-                value={currentEpisodeIndex + 1}
-                onChange={handleEpisodeChange}
-                onSourceChange={handleSourceChange}
-                currentSource={currentSource}
-                currentId={currentId}
-                videoTitle={searchTitle || videoTitle}
-                availableSources={availableSources}
-                sourceSearchLoading={sourceSearchLoading}
-                sourceSearchError={sourceSearchError}
-                precomputedVideoInfo={precomputedVideoInfo}
-                videoDetail={detail}
-                videoCover={videoCover}
-                favorited={favorited}
-                onToggleFavorite={handleToggleFavorite}
-              />
+              {/* 选集/换源/介绍 固定高度面板 */}
+              <div className='h-[400px] lg:h-full md:overflow-hidden md:col-span-1 transition-all duration-300 ease-in-out flex flex-col lg:max-h-full'>
+                <EpisodeSelector
+                  totalEpisodes={totalEpisodes}
+                  episodes_titles={detail?.episodes_titles || []}
+                  value={currentEpisodeIndex + 1}
+                  onChange={handleEpisodeChange}
+                  onSourceChange={handleSourceChange}
+                  currentSource={currentSource}
+                  currentId={currentId}
+                  videoTitle={searchTitle || videoTitle}
+                  availableSources={availableSources}
+                  sourceSearchLoading={sourceSearchLoading}
+                  sourceSearchError={sourceSearchError}
+                  precomputedVideoInfo={precomputedVideoInfo}
+                  videoDetail={detail}
+                  videoCover={videoCover}
+                  favorited={favorited}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              </div>
             </div>
           </div>
         </div>

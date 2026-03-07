@@ -67,9 +67,9 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
   const FILTERS = [
     { label: '电影', value: 'movie' },
     { label: '电视剧', value: 'tv' },
-    { label: '动漫', value: 'anime' },
     { label: '短剧', value: 'short' },
-    { label: '综艺', value: 'variety' },
+    { label: '动漫', value: 'anime' },
+    { label: '综艺', value: 'show' },
   ];
 
   // 电视剧一级选择器选项

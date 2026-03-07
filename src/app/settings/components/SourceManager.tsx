@@ -90,7 +90,10 @@ export default function SourceManager() {
         {sources.length > 0 && !loading && (
           <button
             onClick={handleToggleAll}
-            className='px-3 py-1.5 text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${enabledKeys.length === sources.length
+                ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
+                : 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
+              }`}
           >
             {enabledKeys.length === sources.length ? '全部停用' : '全部启用'}
           </button>

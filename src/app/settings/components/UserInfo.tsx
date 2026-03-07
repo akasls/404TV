@@ -15,7 +15,7 @@ interface UserInfoProps {
 }
 
 export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoProps) {
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -36,8 +36,8 @@ export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoPr
 
   const handleSubmitChangePassword = async () => {
     setPasswordError('');
-    if (!newPassword || newPassword !== confirmPassword) {
-      setPasswordError(newPassword ? '两次输入的密码不一致' : '新密码不得为空');
+    if (!currentPassword || !newPassword || newPassword !== confirmPassword) {
+      setPasswordError(!currentPassword ? '原密码不得为空' : (newPassword ? '两次输入的新密码不一致' : '新密码不得为空'));
       return;
     }
     setPasswordLoading(true);
@@ -45,14 +45,13 @@ export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoPr
       const response = await fetch('/api/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newPassword }),
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await response.json();
       if (!response.ok) {
         setPasswordError(data.error || '修改密码失败');
         return;
       }
-      setIsChangePasswordOpen(false);
       onLogout();
     } catch {
       setPasswordError('网络错误，请稍后重试');
@@ -102,64 +101,61 @@ export default function UserInfo({ authInfo, storageType, onLogout }: UserInfoPr
         <div className='pt-8'>
           <h4 className='text-lg font-bold text-gray-900 dark:text-gray-100 mb-4'>基本设置</h4>
 
-          {!isChangePasswordOpen ? (
-            <button
-              onClick={() => setIsChangePasswordOpen(true)}
-              className='px-4 py-2.5 inline-flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/30 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 rounded-xl transition-all'
-            >
-              <KeyRound className='w-4 h-4' /> 修改密码
-            </button>
-          ) : (
-            <div className='max-w-md bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl space-y-4'>
-              <div>
-                <label className='block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider'>
-                  新密码
-                </label>
-                <input
-                  type='password'
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow'
-                  placeholder='请输入新密码'
-                />
-              </div>
-              <div>
-                <label className='block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider'>
-                  确认新密码
-                </label>
-                <input
-                  type='password'
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow'
-                  placeholder='请再次输入新密码'
-                />
-              </div>
-              {passwordError && (
-                <p className='text-xs text-red-500 font-medium'>
-                  {passwordError}
-                </p>
-              )}
-              <div className='flex items-center gap-3 pt-2'>
-                <button
-                  onClick={handleSubmitChangePassword}
-                  disabled={passwordLoading}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold text-white transition-all ${passwordLoading
-                    ? 'bg-green-400 cursor-not-allowed'
-                    : 'bg-green-500 hover:bg-green-600 shadow-sm hover:shadow active:scale-[0.98]'
-                    }`}
-                >
-                  {passwordLoading ? '提交中...' : '确认修改'}
-                </button>
-                <button
-                  onClick={() => setIsChangePasswordOpen(false)}
-                  className='flex-1 py-2 px-4 rounded-lg text-sm font-bold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all active:scale-[0.98]'
-                >
-                  取消
-                </button>
-              </div>
+          <div className='max-w-md bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl space-y-4'>
+            <div>
+              <label className='block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider'>
+                当前密码
+              </label>
+              <input
+                type='password'
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow'
+                placeholder='验证当前密码以继续操作'
+              />
             </div>
-          )}
+            <div>
+              <label className='block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider'>
+                新密码
+              </label>
+              <input
+                type='password'
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow'
+                placeholder='请输入新密码'
+              />
+            </div>
+            <div>
+              <label className='block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wider'>
+                确认新密码
+              </label>
+              <input
+                type='password'
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow'
+                placeholder='请再次输入新密码'
+              />
+            </div>
+            {passwordError && (
+              <p className='text-xs text-red-500 font-medium'>
+                {passwordError}
+              </p>
+            )}
+            <div className='flex items-center gap-3 pt-2'>
+              <button
+                onClick={handleSubmitChangePassword}
+                disabled={passwordLoading}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold text-white transition-all ${passwordLoading
+                  ? 'bg-green-400 cursor-not-allowed'
+                  : 'bg-green-500 hover:bg-green-600 shadow-sm hover:shadow active:scale-[0.98]'
+                  }`}
+              >
+                {passwordLoading ? '提交中...' : '确认修改'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
