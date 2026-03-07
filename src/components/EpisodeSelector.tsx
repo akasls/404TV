@@ -733,7 +733,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                 </h2>
                 <button
                   onClick={onToggleFavorite}
-                  className='flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0'
+                  className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors shrink-0'
                   title={favorited ? '取消收藏' : '添加收藏'}
                 >
                   {favorited ? (
