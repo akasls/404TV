@@ -64,14 +64,6 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
     { label: '日本', value: '日本' },
   ];
 
-  const FILTERS = [
-    { label: '电影', value: 'movie' },
-    { label: '电视剧', value: 'tv' },
-    { label: '短剧', value: 'short' },
-    { label: '动漫', value: 'anime' },
-    { label: '综艺', value: 'show' },
-  ];
-
   // 电视剧一级选择器选项
   const tvPrimaryOptions: SelectorOption[] = [
     { label: '全部', value: '全部' },
@@ -388,10 +380,11 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
                 buttonRefs.current[index] = el;
               }}
               onClick={() => onChange(option.value)}
-              className={`relative z-10 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${isActive
-                ? 'text-gray-900 dark:text-gray-100 cursor-default'
-                : 'text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer'
-                }`}
+              className={`relative z-10 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
+                isActive
+                  ? 'text-gray-900 dark:text-gray-100 cursor-default'
+                  : 'text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer'
+              }`}
             >
               {option.label}
             </button>
@@ -541,7 +534,7 @@ const DoubanSelector: React.FC<DoubanSelectorProps> = ({
               </span>
               <div className='overflow-x-auto'>
                 {(primarySelection || animePrimaryOptions[0].value) ===
-                  '番剧' ? (
+                '番剧' ? (
                   <MultiLevelSelector
                     key={`anime-tv-${primarySelection}`}
                     onChange={handleMultiLevelChange}

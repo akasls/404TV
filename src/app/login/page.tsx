@@ -3,12 +3,10 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
 
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
-
-
 
 function LoginPageClient() {
   const router = useRouter();
@@ -17,17 +15,18 @@ function LoginPageClient() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [shouldAskUsername, setShouldAskUsername] = useState(false);
-
   const { siteName } = useSite();
-
-  // 在客户端挂载后设置配置
-  useEffect(() => {
+  const [shouldAskUsername] = useState(() => {
     if (typeof window !== 'undefined') {
-      const storageType = (window as any).RUNTIME_CONFIG?.STORAGE_TYPE;
-      setShouldAskUsername(storageType && storageType !== 'localstorage');
+      const storageType =
+        (window as any).RUNTIME_CONFIG?.STORAGE_TYPE ||
+        process.env.NEXT_PUBLIC_STORAGE_TYPE;
+      return storageType && storageType !== 'localstorage';
     }
-  }, []);
+    return process.env.NEXT_PUBLIC_STORAGE_TYPE
+      ? process.env.NEXT_PUBLIC_STORAGE_TYPE !== 'localstorage'
+      : true;
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,8 +60,6 @@ function LoginPageClient() {
       setLoading(false);
     }
   };
-
-
 
   return (
     <div className='relative min-h-screen flex items-center justify-center px-4 overflow-hidden'>
@@ -113,17 +110,13 @@ function LoginPageClient() {
           {/* 登录按钮 */}
           <button
             type='submit'
-            disabled={
-              !password || loading || (shouldAskUsername && !username)
-            }
+            disabled={!password || loading || (shouldAskUsername && !username)}
             className='inline-flex w-full justify-center rounded-lg bg-green-600 py-3 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:from-green-600 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-50'
           >
             {loading ? '登录中...' : '登录'}
           </button>
         </form>
       </div>
-
-
     </div>
   );
 }

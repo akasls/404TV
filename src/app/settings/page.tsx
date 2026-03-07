@@ -1,7 +1,12 @@
 'use client';
 
-import { KeyRound, LogOut, MonitorPlay, Settings as SettingsIcon, Shield, User as UserIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import {
+  LogOut,
+  MonitorPlay,
+  Settings as SettingsIcon,
+  Shield,
+  User as UserIcon,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
@@ -22,7 +27,6 @@ interface AuthInfo {
 type TabType = 'user' | 'sources' | 'local' | 'system';
 
 export default function SettingsPage() {
-  const router = useRouter();
   const [authInfo, setAuthInfo] = useState<AuthInfo | null>(null);
   const [storageType, setStorageType] = useState<string>('localstorage');
   const [mounted, setMounted] = useState(false);
@@ -37,7 +41,9 @@ export default function SettingsPage() {
       const auth = getAuthInfoFromBrowserCookie();
       setAuthInfo(auth);
 
-      const type = (window as any).RUNTIME_CONFIG?.STORAGE_TYPE || 'localstorage';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const type =
+        (window as any).RUNTIME_CONFIG?.STORAGE_TYPE || 'localstorage';
       setStorageType(type);
     }
   }, []);
@@ -49,12 +55,14 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
       });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('注销请求失败:', error);
     }
     window.location.href = '/';
   };
 
-  const showAdminPanel = authInfo?.role === 'owner' || authInfo?.role === 'admin';
+  const showAdminPanel =
+    authInfo?.role === 'owner' || authInfo?.role === 'admin';
 
   if (!mounted) return null;
 
@@ -75,8 +83,32 @@ export default function SettingsPage() {
               className='md:hidden p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'
               title='切换主题'
             >
-              <svg className='w-5 h-5 dark:hidden' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z' /></svg>
-              <svg className='w-5 h-5 hidden dark:block' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z' /></svg>
+              <svg
+                className='w-5 h-5 dark:hidden'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
+                />
+              </svg>
+              <svg
+                className='w-5 h-5 hidden dark:block'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
+                />
+              </svg>
             </button>
             <button
               onClick={handleLogout}
@@ -93,10 +125,11 @@ export default function SettingsPage() {
           <nav className='flex space-x-2 overflow-x-auto pb-2 scrollbar-hide border-b border-gray-100 dark:border-gray-800'>
             <button
               onClick={() => setActiveTab('user')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'user'
-                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                }`}
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
+                activeTab === 'user'
+                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+              }`}
             >
               <UserIcon className='w-5 h-5' />
               用户信息
@@ -104,10 +137,11 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setActiveTab('sources')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'sources'
-                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                }`}
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
+                activeTab === 'sources'
+                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+              }`}
             >
               <MonitorPlay className='w-5 h-5' />
               视频源
@@ -115,10 +149,11 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setActiveTab('local')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'local'
-                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                }`}
+              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
+                activeTab === 'local'
+                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+              }`}
             >
               <SettingsIcon className='w-5 h-5' />
               本地设置
@@ -127,10 +162,11 @@ export default function SettingsPage() {
             {showAdminPanel && (
               <button
                 onClick={() => setActiveTab('system')}
-                className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'system'
-                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                  }`}
+                className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${
+                  activeTab === 'system'
+                    ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
+                    : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
+                }`}
               >
                 <Shield className='w-5 h-5' />
                 管理员设置
@@ -141,14 +177,14 @@ export default function SettingsPage() {
           {/* 下部内容区域 */}
           <div className='min-h-[500px]'>
             {activeTab === 'user' && (
-              <UserInfo authInfo={authInfo} storageType={storageType} onLogout={handleLogout} />
+              <UserInfo
+                authInfo={authInfo}
+                storageType={storageType}
+                onLogout={handleLogout}
+              />
             )}
-            {activeTab === 'sources' && (
-              <SourceManager />
-            )}
-            {activeTab === 'local' && (
-              <LocalSettings />
-            )}
+            {activeTab === 'sources' && <SourceManager />}
+            {activeTab === 'local' && <LocalSettings />}
             {activeTab === 'system' && showAdminPanel && (
               <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-2 sm:p-4'>
                 <SystemSettings />

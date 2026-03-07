@@ -16,6 +16,8 @@ export interface AdminConfig {
     DoubanImageProxy: string;
     DisableYellowFilter: boolean;
     FluidSearch: boolean;
+    ChannelOrder?: string[];
+    GuestAccess?: boolean;
   };
   UserConfig: {
     Users: {
@@ -23,6 +25,7 @@ export interface AdminConfig {
       role: 'user' | 'admin' | 'owner';
       banned?: boolean;
       enabledApis?: string[]; // 优先级高于tags限制
+      userDisabledApis?: string[]; // 用户自行禁用的列表
       tags?: string[]; // 多 tags 取并集限制
     }[];
     Tags?: {

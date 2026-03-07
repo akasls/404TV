@@ -23,6 +23,27 @@ export async function middleware(request: NextRequest) {
   // 从cookie获取认证信息
   const authInfo = getAuthInfoFromCookie(request);
 
+  // --- NEW: Allow Guest Access ---
+  // If GuestAccess is enabled, we only protect /api/admin*, /settings, /admin* routes
+  try {
+    const configResp = await fetch(new URL('/api/server-config', request.url));
+    if (configResp.ok) {
+      const { GuestAccess } = await configResp.json();
+      if (GuestAccess) {
+        const isProtectedPath =
+          pathname.startsWith('/api/admin') || pathname.startsWith('/settings');
+        // If it's a guest AND not trying to hit protected admin routes, let them through
+        if (!authInfo && !isProtectedPath) {
+          return NextResponse.next();
+        }
+      }
+    }
+  } catch (e) {
+    // If we fail to fetch config, fail-safe to requiring auth
+    console.warn('Failed to fetch GuestAccess config in middleware');
+  }
+  // --------------------------------
+
   if (!authInfo) {
     return handleAuthFailure(request, pathname);
   }

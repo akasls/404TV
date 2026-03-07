@@ -256,10 +256,11 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
                 buttonRefs.current[index] = el;
               }}
               onClick={() => onChange(option.value)}
-              className={`relative z-10 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${isActive
+              className={`relative z-10 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap ${
+                isActive
                   ? 'text-gray-900 dark:text-gray-100 cursor-default'
                   : 'text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer'
-                }`}
+              }`}
             >
               {option.label}
             </button>
@@ -279,19 +280,21 @@ const DoubanCustomSelector: React.FC<DoubanCustomSelectorProps> = ({
       {/* 两级选择器包装 */}
       <div className='space-y-3 sm:space-y-4'>
         {/* 一级选择器 */}
-        <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
-          <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
-            频道
-          </span>
-          <div className='overflow-x-auto'>
-            {renderCapsuleSelector(
-              primaryOptions,
-              primarySelection || primaryOptions[0]?.value,
-              onPrimaryChange,
-              true
-            )}
+        {primaryOptions.length > 1 && (
+          <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
+            <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
+              频道
+            </span>
+            <div className='overflow-x-auto'>
+              {renderCapsuleSelector(
+                primaryOptions,
+                primarySelection || primaryOptions[0]?.value,
+                onPrimaryChange,
+                true
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 二级选择器 */}
         {secondaryOptions.length > 0 && (

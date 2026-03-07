@@ -2,6 +2,7 @@
 
 'use client';
 
+import { Heart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import {
@@ -11,7 +12,6 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 
-import { Heart } from 'lucide-react';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
 

@@ -7,11 +7,7 @@ import { Suspense } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { GetBangumiCalendarData } from '@/lib/bangumi.client';
-import {
-  getDoubanCategories,
-  getDoubanList,
-  getDoubanRecommends,
-} from '@/lib/douban.client';
+import { getDoubanCategories, getDoubanRecommends } from '@/lib/douban.client';
 import { DoubanItem, DoubanResult } from '@/lib/types';
 
 import CapsuleSwitch from '@/components/CapsuleSwitch';
@@ -54,6 +50,12 @@ function DoubanPageClient() {
       categories: { name: string; url: string }[];
     }>
   >([]);
+  const [channelOrder, setChannelOrder] = useState<string[]>([
+    'movie',
+    'tv',
+    'anime',
+    'show',
+  ]);
 
   // 选择器状态 - 完全独立，不依赖URL参数
   const [primarySelection, setPrimarySelection] = useState<string>('全部');
@@ -74,11 +76,14 @@ function DoubanPageClient() {
   // 星期选择器状态
   const [selectedWeekday, setSelectedWeekday] = useState<string>('');
 
-  // 获取自定义分类数据
+  // 获取配置数据
   useEffect(() => {
     const runtimeConfig = (window as any).RUNTIME_CONFIG;
     if (runtimeConfig?.CUSTOM_FILTERS?.length > 0) {
       setCustomFilters(runtimeConfig.CUSTOM_FILTERS);
+    }
+    if (runtimeConfig?.CHANNEL_ORDER?.length > 0) {
+      setChannelOrder(runtimeConfig.CHANNEL_ORDER);
     }
   }, []);
 
@@ -119,10 +124,10 @@ function DoubanPageClient() {
 
   // 当type变化时重置选择器状态
   useEffect(() => {
-    if (type === 'custom' && customFilters.length > 0) {
-      const firstFilter = customFilters[0];
-      setPrimarySelection(firstFilter.name);
-      setSecondarySelection(firstFilter.url);
+    const customFilterMatch = customFilters.find((f) => f.name === type);
+    if (customFilterMatch) {
+      setPrimarySelection(customFilterMatch.name);
+      setSecondarySelection(customFilterMatch.url);
     } else {
       // 全部重置为"全部"
       setPrimarySelection('全部');
@@ -148,7 +153,7 @@ function DoubanPageClient() {
   }, [type, customFilters]);
 
   // 生成骨架屏数据
-  const skeletonData = Array.from({ length: 25 }, (_, index) => index);
+  const skeletonData = Array.from({ length: 24 }, (_, index) => index);
 
   // 参数快照比较函数
   const isSnapshotEqual = useCallback(
@@ -177,7 +182,7 @@ function DoubanPageClient() {
         snapshot1.selectedWeekday === snapshot2.selectedWeekday &&
         snapshot1.currentPage === snapshot2.currentPage &&
         JSON.stringify(snapshot1.multiLevelSelection) ===
-        JSON.stringify(snapshot2.multiLevelSelection)
+          JSON.stringify(snapshot2.multiLevelSelection)
       );
     },
     []
@@ -195,9 +200,9 @@ function DoubanPageClient() {
             type === 'minitv'
               ? '短剧'
               : secondarySelection === '全部'
-                ? type
-                : secondarySelection,
-          pageLimit: 25,
+              ? type
+              : secondarySelection,
+          pageLimit: 24,
           pageStart,
         };
       }
@@ -207,7 +212,7 @@ function DoubanPageClient() {
         kind: type as 'tv' | 'movie',
         category: primarySelection,
         type: secondarySelection,
-        pageLimit: 25,
+        pageLimit: 24,
         pageStart,
       };
     },
@@ -236,16 +241,19 @@ function DoubanPageClient() {
 
       let data: DoubanResult;
 
-      if (type === 'custom') {
-        const selectedFilter = customFilters.find(
-          (f) => f.name === primarySelection
-        );
-
-        if (selectedFilter && secondarySelection) {
-          const res = await fetch(`/api/videolist?url=${encodeURIComponent(secondarySelection)}`);
+      const customFilterMatch = customFilters.find((f) => f.name === type);
+      if (customFilterMatch) {
+        if (secondarySelection) {
+          const targetUrl =
+            secondarySelection === '全部'
+              ? customFilterMatch.url
+              : secondarySelection;
+          const res = await fetch(
+            `/api/videolist?url=${encodeURIComponent(targetUrl)}&pg=1`
+          );
           data = await res.json();
         } else {
-          throw new Error('没有找到对应的频道和分类');
+          throw new Error('没有找到对应的分类');
         }
       } else if (type === 'anime' && primarySelection === '每日放送') {
         const calendarData = await GetBangumiCalendarData();
@@ -275,7 +283,7 @@ function DoubanPageClient() {
       } else if (type === 'anime') {
         data = await getDoubanRecommends({
           kind: primarySelection === '番剧' ? 'tv' : 'movie',
-          pageLimit: 25,
+          pageLimit: 24,
           pageStart: 0,
           category: '动画',
           format: primarySelection === '番剧' ? '电视剧' : '',
@@ -297,7 +305,7 @@ function DoubanPageClient() {
             type === 'show' || type === 'minitv'
               ? 'tv'
               : (type as 'tv' | 'movie'),
-          pageLimit: 25,
+          pageLimit: 24,
           pageStart: 0, // 初始数据加载始终从第一页开始
           category: multiLevelValues.type
             ? (multiLevelValues.type as string)
@@ -306,10 +314,10 @@ function DoubanPageClient() {
             type === 'show'
               ? '综艺'
               : type === 'minitv'
-                ? '短剧'
-                : type === 'tv'
-                  ? '电视剧'
-                  : '',
+              ? '短剧'
+              : type === 'tv'
+              ? '电视剧'
+              : '',
           region: multiLevelValues.region
             ? (multiLevelValues.region as string)
             : '',
@@ -407,13 +415,19 @@ function DoubanPageClient() {
           setIsLoadingMore(true);
 
           let data: DoubanResult;
-          if (type === 'custom') {
-            const selectedFilter = customFilters.find(
-              (f) => f.name === primarySelection
-            );
 
-            if (selectedFilter && secondarySelection) {
-              const res = await fetch(`/api/videolist?url=${encodeURIComponent(secondarySelection)}&pg=${currentPage + 1}`);
+          const customFilterMatch = customFilters.find((f) => f.name === type);
+          if (customFilterMatch) {
+            if (secondarySelection) {
+              const targetUrl =
+                secondarySelection === '全部'
+                  ? customFilterMatch.url
+                  : secondarySelection;
+              const res = await fetch(
+                `/api/videolist?url=${encodeURIComponent(targetUrl)}&pg=${
+                  currentPage + 1
+                }`
+              );
               data = await res.json();
             } else {
               throw new Error('没有找到对应的分类');
@@ -428,8 +442,8 @@ function DoubanPageClient() {
           } else if (type === 'anime') {
             data = await getDoubanRecommends({
               kind: primarySelection === '番剧' ? 'tv' : 'movie',
-              pageLimit: 25,
-              pageStart: currentPage * 25,
+              pageLimit: 24,
+              pageStart: currentPage * 24,
               category: '动画',
               format: primarySelection === '番剧' ? '电视剧' : '',
               region: multiLevelValues.region
@@ -454,8 +468,8 @@ function DoubanPageClient() {
                 type === 'show' || type === 'minitv'
                   ? 'tv'
                   : (type as 'tv' | 'movie'),
-              pageLimit: 25,
-              pageStart: currentPage * 25,
+              pageLimit: 24,
+              pageStart: currentPage * 24,
               category: multiLevelValues.type
                 ? (multiLevelValues.type as string)
                 : '',
@@ -463,10 +477,10 @@ function DoubanPageClient() {
                 type === 'show'
                   ? '综艺'
                   : type === 'minitv'
-                    ? '短剧'
-                    : type === 'tv'
-                      ? '电视剧'
-                      : '',
+                  ? '短剧'
+                  : type === 'tv'
+                  ? '电视剧'
+                  : '',
               region: multiLevelValues.region
                 ? (multiLevelValues.region as string)
                 : '',
@@ -576,10 +590,9 @@ function DoubanPageClient() {
         });
 
         // 如果是自定义分类模式，同时更新一级和二级选择器
-        if (type === 'custom' && customFilters.length > 0) {
-          const firstFilter = customFilters.find(
-            (f) => f.name === value
-          );
+        const customFilterMatch = customFilters.find((f) => f.name === type);
+        if (customFilterMatch) {
+          const firstFilter = customFilters.find((f) => f.name === value);
           if (firstFilter) {
             // 批量更新状态，避免多次触发数据加载
             setPrimarySelection(value);
@@ -677,16 +690,25 @@ function DoubanPageClient() {
             </span>
             <div className='overflow-x-auto pb-1 sm:pb-0'>
               <CapsuleSwitch
-                options={[
-                  { label: '电影', value: 'movie' },
-                  { label: '电视剧', value: 'tv' },
-                  { label: '短剧', value: 'minitv' },
-                  { label: '动漫', value: 'anime' },
-                  { label: '综艺', value: 'show' },
-                  ...(customFilters.length > 0
-                    ? [{ label: '自定义', value: 'custom' }]
-                    : []),
-                ]}
+                options={
+                  channelOrder
+                    .map((c) => {
+                      const defaultLabels: Record<string, string> = {
+                        movie: '电影',
+                        tv: '电视剧',
+                        minitv: '短剧',
+                        anime: '动漫',
+                        show: '综艺',
+                      };
+                      if (defaultLabels[c])
+                        return { label: defaultLabels[c], value: c };
+                      const customF = customFilters.find((f) => f.name === c);
+                      if (customF)
+                        return { label: customF.name, value: customF.name };
+                      return null;
+                    })
+                    .filter(Boolean) as { label: string; value: string }[]
+                }
                 active={type}
                 onChange={(val) => {
                   router.push(`/douban?type=${val}`);
@@ -696,7 +718,15 @@ function DoubanPageClient() {
           </div>
 
           <div className='border-t border-gray-100 dark:border-gray-700/50 pt-4 sm:pt-5'>
-            {type !== 'custom' ? (
+            {customFilters.some((f) => f.name === type) ? (
+              <DoubanCustomSelector
+                customFilters={customFilters.filter((f) => f.name === type)}
+                primarySelection={primarySelection}
+                secondarySelection={secondarySelection}
+                onPrimaryChange={handlePrimaryChange}
+                onSecondaryChange={handleSecondaryChange}
+              />
+            ) : (
               <DoubanSelector
                 type={type as 'movie' | 'tv' | 'show' | 'anime' | 'minitv'}
                 primarySelection={primarySelection}
@@ -705,14 +735,6 @@ function DoubanPageClient() {
                 onSecondaryChange={handleSecondaryChange}
                 onMultiLevelChange={handleMultiLevelChange}
                 onWeekdayChange={handleWeekdayChange}
-              />
-            ) : (
-              <DoubanCustomSelector
-                customFilters={customFilters}
-                primarySelection={primarySelection}
-                secondarySelection={secondarySelection}
-                onPrimaryChange={handlePrimaryChange}
-                onSecondaryChange={handleSecondaryChange}
               />
             )}
           </div>
@@ -724,24 +746,24 @@ function DoubanPageClient() {
           <div className='justify-start grid grid-cols-3 gap-x-2 gap-y-12 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8 sm:gap-y-20'>
             {loading || !selectorsReady
               ? // 显示骨架屏
-              skeletonData.map((index) => <DoubanCardSkeleton key={index} />)
+                skeletonData.map((index) => <DoubanCardSkeleton key={index} />)
               : // 显示实际数据
-              doubanData.map((item, index) => (
-                <div key={`${item.title}-${index}`} className='w-full'>
-                  <VideoCard
-                    from='douban'
-                    title={item.title}
-                    poster={item.poster}
-                    douban_id={Number(item.id)}
-                    rate={item.rate}
-                    year={item.year}
-                    type={type === 'movie' ? 'movie' : ''} // 电影类型严格控制，tv 不控
-                    isBangumi={
-                      type === 'anime' && primarySelection === '每日放送'
-                    }
-                  />
-                </div>
-              ))}
+                doubanData.map((item, index) => (
+                  <div key={`${item.title}-${index}`} className='w-full'>
+                    <VideoCard
+                      from='douban'
+                      title={item.title}
+                      poster={item.poster}
+                      douban_id={Number(item.id)}
+                      rate={item.rate}
+                      year={item.year}
+                      type={type === 'movie' ? 'movie' : ''} // 电影类型严格控制，tv 不控
+                      isBangumi={
+                        type === 'anime' && primarySelection === '每日放送'
+                      }
+                    />
+                  </div>
+                ))}
           </div>
 
           {/* 加载更多指示器 */}
