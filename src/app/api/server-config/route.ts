@@ -8,13 +8,12 @@ import { CURRENT_VERSION } from '@/lib/version'
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
-  console.log('server-config called: ', request.url);
-
   const config = await getConfig();
   const result = {
     SiteName: config.SiteConfig.SiteName,
     StorageType: process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage',
     Version: CURRENT_VERSION,
+    GuestAccess: config.SiteConfig?.GuestAccess || false,
   };
   return NextResponse.json(result);
 }

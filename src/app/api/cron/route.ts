@@ -10,9 +10,9 @@ import { SearchResult } from '@/lib/types';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
-  console.log(request.url);
+
   try {
-    console.log('Cron job triggered:', new Date().toISOString());
+
 
     cronJob();
 
@@ -79,7 +79,7 @@ async function refreshConfig() {
       console.error('刷新配置失败:', e);
     }
   } else {
-    console.log('跳过刷新：未配置订阅地址或自动更新');
+
   }
 }
 
@@ -121,7 +121,7 @@ async function refreshRecordAndFavorites() {
     };
 
     for (const user of users) {
-      console.log(`开始处理用户: ${user}`);
+
 
       // 播放记录
       try {
@@ -157,9 +157,7 @@ async function refreshRecordAndFavorites() {
                 save_time: record.save_time,
                 search_title: record.search_title,
               });
-              console.log(
-                `更新播放记录: ${record.title} (${record.total_episodes} -> ${episodeCount})`
-              );
+
             }
 
             processedRecords++;
@@ -169,7 +167,7 @@ async function refreshRecordAndFavorites() {
           }
         }
 
-        console.log(`播放记录处理完成: ${processedRecords}/${totalRecords}`);
+
       } catch (err) {
         console.error(`获取用户播放记录失败 (${user}):`, err);
       }
@@ -205,9 +203,7 @@ async function refreshRecordAndFavorites() {
                 save_time: fav.save_time,
                 search_title: fav.search_title,
               });
-              console.log(
-                `更新收藏: ${fav.title} (${fav.total_episodes} -> ${favEpisodeCount})`
-              );
+
             }
 
             processedFavorites++;
@@ -217,13 +213,13 @@ async function refreshRecordAndFavorites() {
           }
         }
 
-        console.log(`收藏处理完成: ${processedFavorites}/${totalFavorites}`);
+
       } catch (err) {
         console.error(`获取用户收藏失败 (${user}):`, err);
       }
     }
 
-    console.log('刷新播放记录/收藏任务完成');
+
   } catch (err) {
     console.error('刷新播放记录/收藏任务启动失败', err);
   }

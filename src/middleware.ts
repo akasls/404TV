@@ -26,7 +26,10 @@ export async function middleware(request: NextRequest) {
   // --- NEW: Allow Guest Access ---
   // If GuestAccess is enabled, we only protect /api/admin*, /settings, /admin* routes
   try {
-    const configResp = await fetch(new URL('/api/server-config', request.url));
+    // 缓存 300 秒（5分钟），极大提升全站无感跳转速度
+    const configResp = await fetch(new URL('/api/server-config', request.url), {
+      next: { revalidate: 300 },
+    });
     if (configResp.ok) {
       const { GuestAccess } = await configResp.json();
       if (GuestAccess) {
