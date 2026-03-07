@@ -434,59 +434,74 @@ async function fetchDoubanRecommends(
     : useAliCDN
       ? `https://m.douban.cmliussss.com/rexxar/api/v2/${kind}/recommend`
       : `https://m.douban.com/rexxar/api/v2/${kind}/recommend`;
-  const reqParams = new URLSearchParams();
-  reqParams.append('refresh', '0');
-  reqParams.append('start', pageStart.toString());
-  // Overfetch by roughly 26 items to compensate for ad injection without heavy loop recursion
-  reqParams.append('count', (pageLimit + 26).toString());
-  reqParams.append('selected_categories', JSON.stringify(selectedCategories));
-  reqParams.append('uncollect', 'false');
-  reqParams.append('score_range', '0,10');
-  reqParams.append('tags', tags.join(','));
-  if (sort) {
-    reqParams.append('sort', sort);
-  }
-  const target = `${baseUrl}?${reqParams.toString()}`;
-  // console.log(target);
-  try {
-    const response = await fetchWithTimeout(
-      target,
-      useTencentCDN || useAliCDN ? '' : proxyUrl
-    );
+  let currentStart = pageStart;
+  let accumulatedValidCount = 0;
+  const finalItems: DoubanItem[] = [];
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+  while (accumulatedValidCount < pageLimit) {
+    const reqParams = new URLSearchParams();
+    reqParams.append('refresh', '0');
+    reqParams.append('start', currentStart.toString());
+    reqParams.append('count', Math.max(20, pageLimit - accumulatedValidCount + 5).toString());
+    reqParams.append('selected_categories', JSON.stringify(selectedCategories));
+    reqParams.append('uncollect', 'false');
+    reqParams.append('score_range', '0,10');
+    reqParams.append('tags', tags.join(','));
+    if (sort) {
+      reqParams.append('sort', sort);
     }
+    const target = `${baseUrl}?${reqParams.toString()}`;
 
-    const doubanData: DoubanRecommendApiResponse = await response.json();
+    try {
+      const response = await fetchWithTimeout(
+        target,
+        useTencentCDN || useAliCDN ? '' : proxyUrl
+      );
 
-    // Extrapolate exact next cursor relative to true valid items found
-    let validCount = 0;
-    let nextStartCursorDelta = 0;
-    const finalItems: DoubanItem[] = [];
-
-    for (const item of doubanData.items || []) {
-      nextStartCursorDelta++;
-      if (item.type === 'movie' || item.type === 'tv') {
-        finalItems.push({
-          id: item.id,
-          title: item.title,
-          poster: item.pic?.normal || item.pic?.large || '',
-          rate: item.rating?.value ? item.rating.value.toFixed(1) : '',
-          year: item.year,
-        });
-        validCount++;
-        if (validCount === pageLimit) break;
+      if (!response.ok) {
+        if (accumulatedValidCount > 0) break; // Return what we have
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    }
 
-    return {
-      code: 200,
-      message: '获取成功',
-      list: finalItems,
-      nextStart: pageStart + nextStartCursorDelta,
-    };
-  } catch (error) {
-    throw new Error(`获取豆瓣推荐数据失败: ${(error as Error).message}`);
+      const doubanData: DoubanRecommendApiResponse = await response.json();
+
+      if (!doubanData.items || doubanData.items.length === 0) {
+        break; // No more data
+      }
+
+      let iterationValidDelta = 0;
+      let iterationCursorDelta = 0;
+
+      for (const item of doubanData.items) {
+        iterationCursorDelta++;
+        if (item.type === 'movie' || item.type === 'tv') {
+          finalItems.push({
+            id: item.id,
+            title: item.title,
+            poster: item.pic?.normal || item.pic?.large || '',
+            rate: item.rating?.value ? item.rating.value.toFixed(1) : '',
+            year: item.year,
+          });
+          iterationValidDelta++;
+          accumulatedValidCount++;
+          if (accumulatedValidCount === pageLimit) break;
+        }
+      }
+
+      currentStart += iterationCursorDelta;
+
+      // Anti-infinite loop safety if API returns repetitive useless ads
+      if (iterationCursorDelta === 0) break;
+    } catch (error) {
+      if (accumulatedValidCount > 0) break;
+      throw new Error(`获取豆瓣推荐数据失败: ${(error as Error).message}`);
+    }
   }
+
+  return {
+    code: 200,
+    message: '获取成功',
+    list: finalItems,
+    nextStart: currentStart,
+  };
 }
