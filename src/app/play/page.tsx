@@ -1816,17 +1816,17 @@ function PlayPageClient() {
 
   return (
     <PageLayout activePath='/play'>
-      <div className='flex items-center justify-center min-h-[calc(100vh-64px)]'>
-        <div className='flex flex-col w-full h-[calc(100vh-64px)] overflow-hidden py-4 px-4 sm:px-5 lg:px-8 2xl:px-20'>
+      <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-gray-50 dark:bg-[#0a0a0a] md:bg-transparent flex flex-col md:min-h-[calc(100vh-64px)]'>
+        <div className='flex flex-col w-full flex-1 overflow-hidden py-0 md:py-4 px-0 sm:px-5 lg:px-8 2xl:px-20'>
           {/* 第一行：播放器和选集 */}
-          <div className='flex-1 min-h-0 flex flex-col pt-2'>
-            <div className='flex-1 min-h-0 grid gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 lg:h-full lg:max-h-full'>
+          <div className='flex-1 min-h-0 flex flex-col pt-0 md:pt-2'>
+            <div className='flex-1 min-h-0 flex flex-col md:grid md:gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 h-full lg:max-h-full relative'>
               {/* 播放器 */}
-              <div className='h-full flex flex-col min-h-0 rounded-xl border border-white/0 dark:border-white/30 md:col-span-3 lg:col-span-3 lg:h-full lg:max-h-full'>
-                <div className='relative w-full h-[300px] lg:h-full'>
+              <div className='flex-shrink-0 md:flex-shrink md:h-full flex flex-col min-h-0 md:rounded-xl border-b md:border border-black/10 dark:border-white/30 md:col-span-3 lg:col-span-3 lg:h-full lg:max-h-full'>
+                <div className='relative w-full aspect-video md:aspect-auto md:h-full'>
                   <div
                     ref={artRef}
-                    className='bg-black w-full h-full rounded-xl overflow-hidden shadow-lg'
+                    className='bg-black w-full h-full md:rounded-xl overflow-hidden shadow-lg [&.art-fullscreen]:!rounded-none [&.art-fullscreen-web]:!rounded-none [&.art-fullscreen-web]:!top-0 [&.art-fullscreen-web]:!mt-0 outline-none'
                   ></div>
 
                   {/* 换源加载蒙层 */}
@@ -1870,7 +1870,7 @@ function PlayPageClient() {
               </div>
 
               {/* 选集/换源/介绍 固定高度面板 */}
-              <div className='h-[400px] lg:h-full md:overflow-hidden md:col-span-1 transition-all duration-300 ease-in-out flex flex-col lg:max-h-full'>
+              <div className='flex-1 min-h-0 mt-2 md:mt-0 transition-all duration-300 ease-in-out flex flex-col md:overflow-hidden md:col-span-1 lg:max-h-full relative z-10'>
                 <EpisodeSelector
                   totalEpisodes={totalEpisodes}
                   episodes_titles={detail?.episodes_titles || []}

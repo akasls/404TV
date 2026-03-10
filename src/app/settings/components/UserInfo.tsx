@@ -1,6 +1,6 @@
 'use client';
 
-import { Database } from 'lucide-react';
+import { Database, User as UserIcon, Lock } from 'lucide-react';
 import { useState } from 'react';
 
 interface AuthInfo {
@@ -45,8 +45,8 @@ export default function UserInfo({
         !currentPassword
           ? '原密码不得为空'
           : newPassword
-          ? '两次输入的新密码不一致'
-          : '新密码不得为空'
+            ? '两次输入的新密码不一致'
+            : '新密码不得为空'
       );
       return;
     }
@@ -78,6 +78,7 @@ export default function UserInfo({
 
       <div className='flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-gray-700'>
         <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2'>
+          <UserIcon className='w-5 h-5 text-green-500' />
           用户信息
         </h3>
       </div>
@@ -91,13 +92,12 @@ export default function UserInfo({
         </h2>
         <div className='mt-2 flex gap-2'>
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              (authInfo?.role || 'user') === 'owner'
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(authInfo?.role || 'user') === 'owner'
                 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
                 : (authInfo?.role || 'user') === 'admin'
-                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-            }`}
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                  : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+              }`}
           >
             {getRoleText(authInfo?.role || 'user')}
           </span>
@@ -110,8 +110,9 @@ export default function UserInfo({
 
       {showChangePassword && (
         <div className='pt-8'>
-          <h4 className='text-lg font-bold text-gray-900 dark:text-gray-100 mb-4'>
-            基本设置
+          <h4 className='text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4'>
+            <Lock className='w-5 h-5 text-gray-500' />
+            修改密码
           </h4>
 
           <div className='max-w-md bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl space-y-4'>
@@ -160,11 +161,10 @@ export default function UserInfo({
               <button
                 onClick={handleSubmitChangePassword}
                 disabled={passwordLoading}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold text-white transition-all ${
-                  passwordLoading
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold text-white transition-all ${passwordLoading
                     ? 'bg-green-400 cursor-not-allowed'
                     : 'bg-green-500 hover:bg-green-600 shadow-sm hover:shadow active:scale-[0.98]'
-                }`}
+                  }`}
               >
                 {passwordLoading ? '提交中...' : '确认修改'}
               </button>

@@ -3319,7 +3319,7 @@ const VideoSourceConfig = ({
         className='border border-gray-200 dark:border-gray-700 rounded-lg max-h-[28rem] overflow-y-auto overflow-x-auto relative'
         data-table='source-list'
       >
-        <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
+        <table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700 whitespace-nowrap'>
           <thead className='bg-gray-50 dark:bg-gray-900 sticky top-0 z-10'>
             <tr>
               <th className='w-8' />
@@ -4826,15 +4826,15 @@ function AdminPageClient() {
         <div className='absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-bl-full -mr-8 -mt-8 pointer-events-none' />
         <div className='mx-auto'>
           {/* 标题 + 重置配置按钮 */}
-          <div className='flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-800 relative z-10'>
-            <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3'>
-              <Settings className='w-7 h-7 text-green-500' />
+          <div className='flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-gray-700 relative z-10'>
+            <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2'>
+              <Settings className='w-5 h-5 text-green-500' />
               管理员设置
-            </h1>
+            </h3>
             {config && role === 'owner' && (
               <button
                 onClick={handleResetConfig}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors shadow-sm ${buttonStyles.danger}`}
+                className='px-3 py-1.5 flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors'
               >
                 <AlertTriangle className='w-4 h-4' />
                 重置配置

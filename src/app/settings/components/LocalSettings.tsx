@@ -201,7 +201,7 @@ export default function LocalSettings() {
                 <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDoubanDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {isDoubanDropdownOpen && (
-                <div className='absolute z-10 w-full sm:w-[80%] mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden'>
+                <div className='absolute z-10 w-full sm:w-[80%] mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto'>
                   {doubanDataSourceOptions.map((option) => (
                     <button
                       key={option.value}
@@ -249,7 +249,7 @@ export default function LocalSettings() {
                 <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDoubanImageProxyDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {isDoubanImageProxyDropdownOpen && (
-                <div className='absolute z-10 w-full sm:w-[80%] mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden'>
+                <div className='absolute z-10 w-full sm:w-[80%] mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto'>
                   {doubanImageProxyTypeOptions.map((option) => (
                     <button
                       key={option.value}
