@@ -94,8 +94,10 @@ export default function LocalSettings() {
   };
 
   return (
-    <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8'>
-      <div className='flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-gray-700'>
+    <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8 relative overflow-hidden'>
+      <div className='absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-bl-full -mr-8 -mt-8 pointer-events-none' />
+
+      <div className='flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-gray-700 relative z-10'>
         <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2'>
           <SettingsIcon className='w-6 h-6 text-green-500' />
           本地设置

@@ -1407,17 +1407,6 @@ function PlayPageClient() {
             },
           },
           {
-            html: '删除跳过配置',
-            onClick: function () {
-              handleSkipConfigChange({
-                enable: false,
-                intro_time: 0,
-                outro_time: 0,
-              });
-              return '';
-            },
-          },
-          {
             name: '设置片头',
             html: '设置片头',
             icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="12" r="2" fill="#ffffff"/><path d="M9 12L17 12" stroke="#ffffff" stroke-width="2"/><path d="M17 6L17 18" stroke="#ffffff" stroke-width="2"/></svg>',
@@ -1459,6 +1448,17 @@ function PlayPageClient() {
                 handleSkipConfigChange(newConfig);
                 return `-${formatTime(-outroTime)}`;
               }
+            },
+          },
+          {
+            html: '删除跳过配置',
+            onClick: function () {
+              handleSkipConfigChange({
+                enable: false,
+                intro_time: 0,
+                outro_time: 0,
+              });
+              return '';
             },
           },
         ],
@@ -1749,7 +1749,7 @@ function PlayPageClient() {
   if (error) {
     return (
       <PageLayout activePath='/play'>
-        <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-white dark:bg-[#0a0a0a] md:bg-transparent flex flex-col items-center justify-center md:h-[calc(100vh-64px)]'>
+        <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-[#0a0a0a] md:bg-transparent flex flex-col items-center justify-center h-full md:h-[calc(100vh-64px)] overflow-hidden'>
           <div className='text-center max-w-md mx-auto px-6'>
             {/* 错误图标 */}
             <div className='relative mb-8'>
@@ -1816,11 +1816,11 @@ function PlayPageClient() {
 
   return (
     <PageLayout activePath='/play'>
-      <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-white dark:bg-[#0a0a0a] md:bg-transparent flex flex-col md:h-[calc(100vh-64px)]'>
-        <div className='flex flex-col w-full flex-1 md:h-full overflow-hidden py-0 md:py-4 px-0 sm:px-5 lg:px-8 2xl:px-20'>
+      <div className='fixed md:relative inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-white dark:bg-[#0a0a0a] md:bg-transparent flex flex-col h-[calc(100vh-env(safe-area-inset-bottom,0px))] md:h-[calc(100vh-64px)] overflow-hidden'>
+        <div className='flex flex-col w-full flex-1 h-full md:h-full overflow-hidden py-0 md:py-4 px-0 sm:px-5 lg:px-8 2xl:px-20'>
           {/* 第一行：播放器和选集 */}
           <div className='flex-1 min-h-0 flex flex-col pt-0 md:pt-2'>
-            <div className='flex-1 min-h-0 flex flex-col md:grid md:gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 h-full lg:max-h-full relative'>
+            <div className='flex-1 min-h-0 md:min-h-[500px] flex flex-col md:grid md:gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 h-full lg:max-h-full relative group'>
               {/* 播放器 */}
               <div className='flex-shrink-0 md:flex-shrink md:h-full flex flex-col min-h-0 md:rounded-xl border-b md:border border-black/10 dark:border-white/30 md:col-span-3 lg:col-span-3 lg:h-full lg:max-h-full'>
                 <div className='relative w-full aspect-video md:aspect-auto md:h-full'>
@@ -1870,7 +1870,7 @@ function PlayPageClient() {
               </div>
 
               {/* 选集/换源/介绍 固定高度面板 */}
-              <div className='flex-1 min-h-0 mt-2 md:mt-0 transition-all duration-300 ease-in-out flex flex-col md:overflow-hidden md:col-span-1 lg:max-h-full relative z-10'>
+              <div className='flex-1 min-h-0 mt-2 md:mt-0 transition-all duration-300 ease-in-out flex flex-col md:overflow-hidden md:col-span-1 lg:max-h-full relative z-10 [&.art-fullscreen-web]:hidden group-hover:[&.art-fullscreen-web_&]:flex group-hover:[&.art-fullscreen-web]:md:flex'>
                 <EpisodeSelector
                   totalEpisodes={totalEpisodes}
                   episodes_titles={detail?.episodes_titles || []}
