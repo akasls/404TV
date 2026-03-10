@@ -1660,7 +1660,7 @@ function PlayPageClient() {
   if (loading) {
     return (
       <PageLayout activePath='/play'>
-        <div className='flex items-center justify-center min-h-screen bg-transparent'>
+        <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-white dark:bg-[#0a0a0a] md:bg-transparent flex items-center justify-center md:h-[calc(100vh-64px)]'>
           <div className='text-center max-w-md mx-auto px-6'>
             {/* 动画影院图标 */}
             <div className='relative mb-8'>
@@ -1749,7 +1749,7 @@ function PlayPageClient() {
   if (error) {
     return (
       <PageLayout activePath='/play'>
-        <div className='flex items-center justify-center min-h-screen bg-transparent'>
+        <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-white dark:bg-[#0a0a0a] md:bg-transparent flex flex-col items-center justify-center md:h-[calc(100vh-64px)]'>
           <div className='text-center max-w-md mx-auto px-6'>
             {/* 错误图标 */}
             <div className='relative mb-8'>
@@ -1816,8 +1816,8 @@ function PlayPageClient() {
 
   return (
     <PageLayout activePath='/play'>
-      <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-gray-50 dark:bg-[#0a0a0a] md:bg-transparent flex flex-col md:min-h-[calc(100vh-64px)]'>
-        <div className='flex flex-col w-full flex-1 overflow-hidden py-0 md:py-4 px-0 sm:px-5 lg:px-8 2xl:px-20'>
+      <div className='fixed md:static inset-0 pt-[env(safe-area-inset-top,0px)] bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:bottom-auto md:pt-0 z-30 bg-white dark:bg-[#0a0a0a] md:bg-transparent flex flex-col md:h-[calc(100vh-64px)]'>
+        <div className='flex flex-col w-full flex-1 md:h-full overflow-hidden py-0 md:py-4 px-0 sm:px-5 lg:px-8 2xl:px-20'>
           {/* 第一行：播放器和选集 */}
           <div className='flex-1 min-h-0 flex flex-col pt-0 md:pt-2'>
             <div className='flex-1 min-h-0 flex flex-col md:grid md:gap-4 lg:gap-6 grid-cols-1 md:grid-cols-4 lg:grid-cols-4 h-full lg:max-h-full relative'>
