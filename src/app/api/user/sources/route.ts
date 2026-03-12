@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       .map((s) => ({
         key: s.key,
         name: s.name,
+        api: s.api,
         detail: s.detail,
         group: s.group,
       }));
