@@ -14,6 +14,7 @@ export async function GET(request: Request) {
 
     const targetUrl = new URL(urlStr);
     targetUrl.searchParams.set('pg', pg); // Append or overwrite pagination param
+    targetUrl.searchParams.set('out', 'json'); // Always enforce JSON payload for MacCMS
 
     const res = await fetch(targetUrl.toString(), {
       headers: {

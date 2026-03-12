@@ -679,7 +679,7 @@ function SearchPageClient() {
         <div className='mb-8'>
           <form onSubmit={handleSearch} className='max-w-3xl mx-auto'>
             {/* 搜索框外部容器：增强高度、圆角、背景和辉光动效 */}
-            <div className='flex flex-row items-center relative w-full h-14 rounded-xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md dark:shadow-black/20 overflow-visible focus-within:ring-2 focus-within:ring-green-500/50 focus-within:border-green-400/50 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all duration-300 z-20'>
+            <div className='flex flex-row items-center relative w-full h-14 rounded-xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md dark:shadow-black/20 overflow-visible focus-within:border-green-400/80 dark:focus-within:border-green-500/80 focus-within:shadow-[0_0_20px_rgba(34,197,94,0.15)] dark:focus-within:shadow-[0_0_20px_rgba(34,197,94,0.15)] focus-within:bg-white dark:focus-within:bg-gray-800 transition-all duration-300 z-20'>
               
               {/* Source Selection Dropdown */}
               <div 
@@ -755,7 +755,7 @@ function SearchPageClient() {
                   onFocus={handleInputFocus}
                   placeholder='搜索电影、电视剧...'
                   autoComplete="off"
-                  className='peer w-full h-full bg-transparent py-0 pl-12 pr-12 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500 rounded-r-xl transition-colors'
+                  className='peer w-full h-full bg-transparent py-0 pl-12 pr-12 text-base text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0 border-none focus:border-none dark:text-gray-100 dark:placeholder-gray-500 rounded-r-xl transition-colors'
                 />
 
                 {/* 清除按钮 */}

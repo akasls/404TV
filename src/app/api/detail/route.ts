@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   const sourceCode = searchParams.get('source');
+  const mode = searchParams.get('mode');
+  const isAdultMode = mode === 'adult';
 
   if (!id || !sourceCode) {
     return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const apiSites = await getAvailableApiSites(authInfo.username);
+    const apiSites = await getAvailableApiSites(authInfo.username, isAdultMode);
     const apiSite = apiSites.find((site) => site.key === sourceCode);
 
     if (!apiSite) {

@@ -24,6 +24,7 @@ import { SearchResult } from '@/lib/types';
 import { getVideoResolutionFromM3u8 } from '@/lib/utils';
 
 import EpisodeSelector from '@/components/EpisodeSelector';
+import { useMode } from '@/components/ModeProvider';
 import PageLayout from '@/components/PageLayout';
 
 // 扩展 HTMLVideoElement 类型以支持 hls 属性
@@ -44,6 +45,7 @@ interface WakeLockSentinel {
 function PlayPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAdultMode } = useMode();
 
   // -----------------------------------------------------------------------------
   // 状态变量（State）
@@ -652,7 +654,7 @@ function PlayPageClient() {
     ): Promise<SearchResult[]> => {
       try {
         const detailResponse = await fetch(
-          `/api/detail?source=${source}&id=${id}`
+          `/api/detail?source=${source}&id=${id}&mode=${isAdultMode ? 'adult' : 'view'}`
         );
         if (!detailResponse.ok) {
           throw new Error('获取视频详情失败');
@@ -671,7 +673,7 @@ function PlayPageClient() {
       // 根据搜索词获取全部源信息
       try {
         const response = await fetch(
-          `/api/search?q=${encodeURIComponent(query.trim())}`
+          `/api/search?q=${encodeURIComponent(query.trim())}&mode=${isAdultMode ? 'adult' : 'view'}`
         );
         if (!response.ok) {
           throw new Error('搜索失败');
@@ -790,7 +792,7 @@ function PlayPageClient() {
     };
 
     initAll();
-  }, []);
+  }, [isAdultMode]);
 
   // 播放记录处理
   useEffect(() => {
