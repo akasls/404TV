@@ -755,7 +755,8 @@ function SearchPageClient() {
                   onFocus={handleInputFocus}
                   placeholder='搜索电影、电视剧...'
                   autoComplete="off"
-                  className='peer w-full h-full bg-transparent py-0 pl-12 pr-12 text-base text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0 border-none focus:border-none dark:text-gray-100 dark:placeholder-gray-500 rounded-r-xl transition-colors'
+                  style={{ boxShadow: 'none', outline: 'none' }}
+                  className='peer w-full h-full bg-transparent py-0 pl-12 pr-12 text-base text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0 focus:ring-transparent border-none focus:border-transparent appearance-none dark:text-gray-100 dark:placeholder-gray-500 rounded-r-xl transition-colors'
                 />
 
                 {/* 清除按钮 */}

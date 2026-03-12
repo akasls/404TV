@@ -19,6 +19,12 @@ interface Category {
   type_name: string;
 }
 
+const ensureValidUrl = (urlStr: string) => {
+  if (urlStr.startsWith('//')) return 'http:' + urlStr;
+  if (!urlStr.startsWith('http://') && !urlStr.startsWith('https://')) return 'http://' + urlStr;
+  return urlStr;
+};
+
 export default function AdultDiscover() {
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedSource, setSelectedSource] = useState<Source | null>(null);
@@ -67,7 +73,7 @@ export default function AdultDiscover() {
     setCurrentPage(1);
     setHasMore(true);
 
-    const targetUrl = new URL(selectedSource.api);
+    const targetUrl = new URL(ensureValidUrl(selectedSource.api));
     targetUrl.searchParams.set('ac', 'videolist');
     targetUrl.searchParams.set('pg', '1');
 
@@ -105,7 +111,7 @@ export default function AdultDiscover() {
     setCurrentPage(1);
     setHasMore(true);
 
-    const targetUrl = new URL(selectedSource.api);
+    const targetUrl = new URL(ensureValidUrl(selectedSource.api));
     targetUrl.searchParams.set('ac', 'videolist');
     targetUrl.searchParams.set('pg', '1');
     if (selectedCategoryId !== 0) {
@@ -137,7 +143,7 @@ export default function AdultDiscover() {
     let active = true;
     setIsLoadingMore(true);
 
-    const targetUrl = new URL(selectedSource.api);
+    const targetUrl = new URL(ensureValidUrl(selectedSource.api));
     targetUrl.searchParams.set('ac', 'videolist');
     targetUrl.searchParams.set('pg', currentPage.toString());
     if (selectedCategoryId !== 0) {
