@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { DoubanItem } from '@/lib/types';
 
+import CapsuleSwitch from '@/components/CapsuleSwitch';
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import VideoCard from '@/components/VideoCard';
 
@@ -16,6 +17,7 @@ interface Source {
 
 interface Category {
   type_id: number;
+  type_pid?: number;
   type_name: string;
 }
 
@@ -30,6 +32,9 @@ export default function AdultDiscover() {
   const [selectedSource, setSelectedSource] = useState<Source | null>(null);
   
   const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedPrimaryId, setSelectedPrimaryId] = useState<number>(0);
+  const [selectedSecondaryId, setSelectedSecondaryId] = useState<number>(0);
+  // selectedCategoryId 依然代表最终用于网络请求的 ID (通常是最深的一级)
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   const [videos, setVideos] = useState<any[]>([]);
@@ -37,6 +42,7 @@ export default function AdultDiscover() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadingSources, setLoadingSources] = useState(true);
   
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingRef = useRef<HTMLDivElement | null>(null);
@@ -58,7 +64,10 @@ export default function AdultDiscover() {
           setSelectedSource(adultSources[0]);
         }
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => {
+        if (active) setLoadingSources(false);
+      });
     return () => { active = false; };
   }, []);
 
@@ -69,6 +78,8 @@ export default function AdultDiscover() {
     setLoading(true);
     setVideos([]);
     setCategories([]);
+    setSelectedPrimaryId(0);
+    setSelectedSecondaryId(0);
     setSelectedCategoryId(null);
     setCurrentPage(1);
     setHasMore(true);
@@ -82,7 +93,10 @@ export default function AdultDiscover() {
       .then((data) => {
         if (!active) return;
         if (data.code === 200) {
-          setCategories([{ type_id: 0, type_name: '全部' }, ...(data.categories || [])]);
+          const fetchedCategories = data.categories || [];
+          setCategories(fetchedCategories);
+          setSelectedPrimaryId(0);
+          setSelectedSecondaryId(0);
           setSelectedCategoryId(0);
           setVideos(data.list || []);
           setHasMore(data.page < data.pagecount);
@@ -186,23 +200,32 @@ export default function AdultDiscover() {
 
   const skeletonData = Array.from({ length: 24 }, (_, index) => index);
 
+  const isFlatList = categories.length > 0 && categories.every(c => !c.type_pid || c.type_pid === 0);
+  const primaryCategories = isFlatList ? [] : categories.filter((c) => !c.type_pid || c.type_pid === 0);
+  const secondaryCategories = isFlatList ? categories : categories.filter((c) => c.type_pid === selectedPrimaryId);
+
   return (
     <div className='px-4 sm:px-10 py-4 overflow-visible mt-2 sm:mt-0'>
-      <div className='mb-6 sm:mb-8 bg-pink-50 dark:bg-pink-900/20 rounded-2xl p-4 sm:p-6 border border-pink-200/50 dark:border-pink-800/30 backdrop-blur-sm shadow-sm'>
+      <div className='mb-6 sm:mb-8 bg-white/60 dark:bg-gray-800/40 rounded-2xl p-4 sm:p-6 border border-gray-200/30 dark:border-gray-700/30 backdrop-blur-sm'>
         <div className='flex flex-col sm:flex-row sm:items-center gap-3 mb-4 sm:mb-5'>
-          <span className='text-sm font-bold text-pink-600 dark:text-pink-400 min-w-[48px]'>视频源</span>
+          <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>视频源</span>
           <div className='flex flex-wrap gap-2'>
-            {sources.length === 0 ? (
+            {loadingSources ? (
+              <div className='flex items-center gap-2 px-2'>
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-pink-500'></div>
+                <span className='text-sm text-gray-500'>加载中...</span>
+              </div>
+            ) : sources.length === 0 ? (
               <span className='text-sm text-gray-500'>暂无启用的成人视频源</span>
             ) : (
               sources.map(s => (
                 <button
                   key={s.key}
                   onClick={() => setSelectedSource(s)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors font-medium border ${
+                  className={`px-3 py-1 text-xs sm:text-sm rounded-full transition-colors font-medium border ${
                     selectedSource?.key === s.key
-                      ? 'bg-pink-500 text-white border-pink-500 shadow-sm'
-                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-pink-300 dark:hover:border-pink-700'
+                      ? 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/20 dark:text-pink-400 dark:border-pink-800/50'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
                   {s.name}
@@ -212,28 +235,76 @@ export default function AdultDiscover() {
           </div>
         </div>
 
-        {categories.length > 0 && (
-          <div className='border-t border-pink-100 dark:border-pink-800/50 pt-4'>
-            <div className='flex flex-wrap gap-2'>
-              {categories.map((cat) => (
-                <button
-                  key={cat.type_id}
-                  onClick={() => {
-                    if (selectedCategoryId !== cat.type_id) {
-                      setVideos([]);
-                      setSelectedCategoryId(cat.type_id);
-                    }
-                  }}
-                  className={`px-3 py-1 text-xs sm:text-sm rounded-full transition-colors ${
-                    selectedCategoryId === cat.type_id
-                      ? 'bg-pink-100 dark:bg-pink-800/60 text-pink-700 dark:text-pink-300 font-bold'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  {cat.type_name}
-                </button>
-              ))}
+        {primaryCategories.length > 0 && (
+          <div className='flex flex-col sm:flex-row sm:items-center gap-2 mb-4 sm:mb-5 border-t border-gray-100 dark:border-gray-700/50 pt-4'>
+            <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>
+              频道
+            </span>
+            <div className='overflow-x-auto pb-1 sm:pb-0 whitespace-nowrap scrollbar-hide flex-1'>
+              <CapsuleSwitch
+                options={[
+                  { label: '全部', value: '0' },
+                  ...primaryCategories.map(c => ({ label: c.type_name, value: String(c.type_id) }))
+                ]}
+                active={String(selectedPrimaryId)}
+                onChange={(val) => {
+                  const id = Number(val);
+                  setSelectedPrimaryId(id);
+                  setSelectedSecondaryId(id);
+                  if (selectedCategoryId !== id) {
+                    setVideos([]);
+                    setSelectedCategoryId(id);
+                  }
+                }}
+              />
             </div>
+          </div>
+        )}
+
+        {secondaryCategories.length > 0 && (
+          <div className={`pt-4 ${primaryCategories.length > 0 ? '' : 'border-t border-gray-100 dark:border-gray-700/50'}`}>
+             <div className='flex items-center gap-2'>
+               <span className='text-xs sm:text-sm font-medium text-gray-400 min-w-[48px]'>分类</span>
+               <div className='flex-1 overflow-x-auto whitespace-nowrap scrollbar-hide'>
+                 <div className='inline-flex gap-1 sm:gap-2'>
+                   <button
+                     onClick={() => {
+                       setSelectedSecondaryId(selectedPrimaryId);
+                       if (selectedCategoryId !== selectedPrimaryId) {
+                         setVideos([]);
+                         setSelectedCategoryId(selectedPrimaryId);
+                       }
+                     }}
+                     className={`px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full transition-colors font-medium whitespace-nowrap ${
+                       selectedSecondaryId === selectedPrimaryId
+                         ? 'bg-pink-100/60 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400 font-bold'
+                         : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+                     }`}
+                   >
+                     全部
+                   </button>
+                   {secondaryCategories.map((cat) => (
+                     <button
+                       key={cat.type_id}
+                       onClick={() => {
+                         setSelectedSecondaryId(cat.type_id);
+                         if (selectedCategoryId !== cat.type_id) {
+                           setVideos([]);
+                           setSelectedCategoryId(cat.type_id);
+                         }
+                       }}
+                       className={`px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full transition-colors font-medium whitespace-nowrap ${
+                         selectedSecondaryId === cat.type_id
+                           ? 'bg-pink-100/60 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400 font-bold'
+                           : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+                       }`}
+                     >
+                       {cat.type_name}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+             </div>
           </div>
         )}
       </div>

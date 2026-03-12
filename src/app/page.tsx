@@ -33,6 +33,11 @@ function HomeClient() {
 
   useEffect(() => {
     const fetchRecommendData = async () => {
+      if (isAdultMode) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
 
