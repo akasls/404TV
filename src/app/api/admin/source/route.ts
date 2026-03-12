@@ -18,7 +18,8 @@ type Action =
   | 'sort'
   | 'batch_disable'
   | 'batch_enable'
-  | 'batch_delete';
+  | 'batch_delete'
+  | 'batch_set_group';
 
 interface BaseBody {
   action?: Action;
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
       'batch_disable',
       'batch_enable',
       'batch_delete',
+      'batch_set_group',
     ];
     if (!username || !action || !ACTIONS.includes(action)) {
       return NextResponse.json({ error: '参数格式错误' }, { status: 400 });
@@ -225,6 +227,28 @@ export async function POST(request: NextRequest) {
             }
           });
         }
+        break;
+      }
+      case 'batch_set_group': {
+        const { keys, group } = body as { keys?: string[]; group?: 'view' | 'adult' };
+        if (!Array.isArray(keys) || keys.length === 0) {
+          return NextResponse.json(
+            { error: '缺少 keys 参数或为空' },
+            { status: 400 }
+          );
+        }
+        if (group !== 'view' && group !== 'adult') {
+          return NextResponse.json(
+            { error: 'group 参数必须为 view 或 adult' },
+            { status: 400 }
+          );
+        }
+        keys.forEach((key) => {
+          const entry = adminConfig.SourceConfig.find((s) => s.key === key);
+          if (entry) {
+            entry.group = group;
+          }
+        });
         break;
       }
       case 'sort': {

@@ -287,7 +287,6 @@ interface SiteConfig {
   DoubanProxy: string;
   DoubanImageProxyType: string;
   DoubanImageProxy: string;
-  DisableYellowFilter: boolean;
   FluidSearch: boolean;
   ChannelOrder?: string[];
   GuestAccess?: boolean;
@@ -356,20 +355,13 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
   const { isLoading, withLoading } = useLoadingState();
   const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
-  const [showAddUserGroupForm, setShowAddUserGroupForm] = useState(false);
-  const [showEditUserGroupForm, setShowEditUserGroupForm] = useState(false);
   const [newUser, setNewUser] = useState({
     username: '',
     password: '',
-    userGroup: '', // 新增用户组字段
   });
   const [changePasswordUser, setChangePasswordUser] = useState({
     username: '',
     password: '',
-  });
-  const [newUserGroup, setNewUserGroup] = useState({
-    name: '',
-    enabledApis: [] as string[],
   });
 
   const [showConfigureApisModal, setShowConfigureApisModal] = useState(false);
@@ -430,10 +422,9 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
       await handleUserAction(
         'add',
         newUser.username,
-        newUser.password,
-        newUser.userGroup
+        newUser.password
       );
-      setNewUser({ username: '', password: '', userGroup: '' });
+      setNewUser({ username: '', password: '' });
       setShowAddUserForm(false);
     });
   };
@@ -482,7 +473,7 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
       const response = await fetch('/api/admin/user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggleAdultEnable', username, isAdultEnabled: enabled }),
+        body: JSON.stringify({ action: 'toggleAdultEnable', targetUsername: username, isAdultEnabled: enabled }),
       });
       if (!response.ok) throw new Error('Toggle failed');
       await refreshConfig();
@@ -1886,7 +1877,8 @@ const VideoSourceConfig = ({
 
   // 批量操作
   const handleBatchOperation = async (
-    action: 'batch_enable' | 'batch_disable' | 'batch_delete'
+    action: 'batch_enable' | 'batch_disable' | 'batch_delete' | 'batch_set_group',
+    group?: 'view' | 'adult'
   ) => {
     if (selectedSources.size === 0) {
       showAlert({
@@ -1914,6 +1906,10 @@ const VideoSourceConfig = ({
         confirmMessage = `确定要删除选中的 ${keys.length} 个视频源吗？此操作不可恢复！`;
         actionName = '批量删除';
         break;
+      case 'batch_set_group':
+        confirmMessage = `确定要把选中的 ${keys.length} 个视频源归入 ${group === 'view' ? '观影组' : '成人组'} 吗？`;
+        actionName = '批量分组';
+        break;
     }
 
     // 显示确认弹窗
@@ -1924,7 +1920,7 @@ const VideoSourceConfig = ({
       onConfirm: async () => {
         try {
           await withLoading(`batchSource_${action}`, () =>
-            callSourceApi({ action, keys })
+            callSourceApi({ action, keys, group })
           );
           showAlert({
             type: 'success',
@@ -2023,6 +2019,26 @@ const VideoSourceConfig = ({
                     ? '删除中...'
                     : '批量删除'}
                 </button>
+                <div className='flex items-center ml-2 border-l pl-2 border-gray-300 dark:border-gray-600 gap-2'>
+                  <select
+                    id="batchGroupSelect"
+                    className="px-2 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md outline-none"
+                    aria-label="选择分组"
+                  >
+                    <option value="view">观影组</option>
+                    <option value="adult">成人组</option>
+                  </select>
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('batchGroupSelect') as HTMLSelectElement;
+                      if (el) handleBatchOperation('batch_set_group', el.value as 'view' | 'adult');
+                    }}
+                    disabled={isLoading('batchSource_batch_set_group')}
+                    className={`px-3 py-1 text-sm ${isLoading('batchSource_batch_set_group') ? buttonStyles.disabled : buttonStyles.primary}`}
+                  >
+                    批量分组
+                  </button>
+                </div>
               </div>
               <div className='hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-600 order-2'></div>
             </>
@@ -3046,7 +3062,6 @@ const SiteConfigComponent = ({
     DoubanProxy: '',
     DoubanImageProxyType: 'cmliussss-cdn-tencent',
     DoubanImageProxy: '',
-    DisableYellowFilter: false,
     FluidSearch: true,
     ChannelOrder: ['movie', 'tv', 'anime', 'show'],
     GuestAccess: false,
@@ -3111,7 +3126,6 @@ const SiteConfigComponent = ({
         DoubanImageProxyType:
           config.SiteConfig.DoubanImageProxyType || 'cmliussss-cdn-tencent',
         DoubanImageProxy: config.SiteConfig.DoubanImageProxy || '',
-        DisableYellowFilter: config.SiteConfig.DisableYellowFilter || false,
         FluidSearch: config.SiteConfig.FluidSearch ?? true,
         ChannelOrder: config.SiteConfig.ChannelOrder || [
           'movie',
@@ -3492,38 +3506,7 @@ const SiteConfigComponent = ({
         />
       </div>
 
-      {/* 禁用黄色过滤器 */}
-      <div>
-        <div className='flex items-center justify-between'>
-          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-            禁用黄色过滤器
-          </label>
-          <button
-            type='button'
-            onClick={() =>
-              setSiteSettings((prev) => ({
-                ...prev,
-                DisableYellowFilter: !prev.DisableYellowFilter,
-              }))
-            }
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${siteSettings.DisableYellowFilter
-              ? buttonStyles.toggleOn
-              : buttonStyles.toggleOff
-              }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full ${buttonStyles.toggleThumb
-                } transition-transform ${siteSettings.DisableYellowFilter
-                  ? buttonStyles.toggleThumbOn
-                  : buttonStyles.toggleThumbOff
-                }`}
-            />
-          </button>
-        </div>
-        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-          禁用黄色内容的过滤功能，允许显示所有内容。
-        </p>
-      </div>
+        {/* 站点接口缓存设置 */}
 
       {/* 流式搜索 */}
       <div>

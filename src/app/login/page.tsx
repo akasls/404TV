@@ -41,10 +41,10 @@ function LoginPageClient() {
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? '服务器错误');
+        setLoading(false);
       }
     } catch (error) {
       setError('网络错误，请稍后重试');
-    } finally {
       setLoading(false);
     }
   };

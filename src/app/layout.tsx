@@ -57,8 +57,7 @@ export default async function RootLayout({
   let doubanImageProxyType =
     process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE || 'cmliussss-cdn-tencent';
   let doubanImageProxy = process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY || '';
-  let disableYellowFilter =
-    process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true';
+
   let fluidSearch = process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false';
   let customFilters = [] as {
     name: string;
@@ -78,7 +77,6 @@ export default async function RootLayout({
     doubanProxy = config.SiteConfig.DoubanProxy;
     doubanImageProxyType = config.SiteConfig.DoubanImageProxyType;
     doubanImageProxy = config.SiteConfig.DoubanImageProxy;
-    disableYellowFilter = config.SiteConfig.DisableYellowFilter;
     customFilters = config.CustomFilters.map((filter) => ({
       name: filter.name,
       url: filter.url,
@@ -123,7 +121,6 @@ export default async function RootLayout({
     DOUBAN_PROXY: doubanProxy,
     DOUBAN_IMAGE_PROXY_TYPE: doubanImageProxyType,
     DOUBAN_IMAGE_PROXY: doubanImageProxy,
-    DISABLE_YELLOW_FILTER: disableYellowFilter,
     CUSTOM_FILTERS: customFilters,
     FLUID_SEARCH: fluidSearch,
     CHANNEL_ORDER: channelOrder,

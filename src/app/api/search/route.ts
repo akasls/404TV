@@ -3,9 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
-import { getAvailableApiSites, getCacheTime, getConfig } from '@/lib/config';
+import { getAvailableApiSites, getCacheTime } from '@/lib/config';
 import { searchFromApi } from '@/lib/downstream';
-import { yellowWords } from '@/lib/yellow';
 
 export const runtime = 'nodejs';
 
@@ -36,7 +35,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const config = await getConfig();
   let apiSites = await getAvailableApiSites(authInfo.username, isAdultMode);
 
   if (targetSource && targetSource !== 'all') {
@@ -61,13 +59,7 @@ export async function GET(request: NextRequest) {
     const successResults = results
       .filter((result) => result.status === 'fulfilled')
       .map((result) => (result as PromiseFulfilledResult<any>).value);
-    let flattenedResults = successResults.flat();
-    if (!config.SiteConfig.DisableYellowFilter) {
-      flattenedResults = flattenedResults.filter((result) => {
-        const typeName = result.type_name || '';
-        return !yellowWords.some((word: string) => typeName.includes(word));
-      });
-    }
+    const flattenedResults = successResults.flat();
     const cacheTime = await getCacheTime();
 
     if (flattenedResults.length === 0) {

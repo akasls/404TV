@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-explicit-any,@typescript-eslint/no-non-null-assertion,no-empty */
 'use client';
 
-import { ChevronUp, ChevronDown, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { startTransition, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -25,7 +25,13 @@ function SearchPageClient() {
   const [sources, setSources] = useState<{ key: string; name: string }[]>([]);
   const [selectedSource, setSelectedSource] = useState<string>('all');
 
-  // Fetch available sources based on mode
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('searchSelectedSource');
+      if (saved) setSelectedSource(saved);
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
     fetch('/api/user/sources')
@@ -42,6 +48,12 @@ function SearchPageClient() {
       .catch(console.error);
     return () => { active = false; };
   }, [isAdultMode]);
+
+  const handleSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedSource(val);
+    localStorage.setItem('searchSelectedSource', val);
+  };
 
   // 搜索历史
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
@@ -492,6 +504,7 @@ function SearchPageClient() {
                       : (payload.results as SearchResult[]);
                   pendingResultsRef.current.push(...incoming);
                   if (!flushTimerRef.current) {
+                    // 增加批处理时间至300ms，显著减缓手机端流式渲染卡死问题
                     flushTimerRef.current = window.setTimeout(() => {
                       const toAppend = pendingResultsRef.current;
                       pendingResultsRef.current = [];
@@ -499,7 +512,7 @@ function SearchPageClient() {
                         setSearchResults((prev) => prev.concat(toAppend));
                       });
                       flushTimerRef.current = null;
-                    }, 80);
+                    }, 300);
                   }
                 }
                 break;
@@ -664,14 +677,14 @@ function SearchPageClient() {
         {/* 搜索框 */}
         <div className='mb-8'>
           <form onSubmit={handleSearch} className='max-w-3xl mx-auto'>
-            <div className='flex flex-col sm:flex-row items-center gap-2 relative'>
+            <div className='flex flex-row items-center relative w-full h-12 rounded-lg bg-gray-50/80 dark:bg-gray-800 border border-gray-200/50 shadow-sm dark:border-gray-700 overflow-visible focus-within:ring-2 focus-within:ring-green-400 focus-within:bg-white dark:focus-within:bg-gray-700 transition-colors z-20'>
               
               {/* Source Selection Dropdown */}
-              <div className='relative w-full sm:w-auto flex-shrink-0'>
+              <div className='relative flex-shrink-0 h-full border-r border-gray-200 dark:border-gray-700 z-10'>
                 <select
                   value={selectedSource}
-                  onChange={(e) => setSelectedSource(e.target.value)}
-                  className='w-full sm:w-auto h-12 appearance-none bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700 rounded-lg pl-3 pr-8 py-3 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm cursor-pointer'
+                  onChange={handleSourceChange}
+                  className='h-full w-24 sm:w-auto appearance-none bg-transparent pl-3 pr-8 py-0 text-sm text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer'
                 >
                   <option value='all'>全部资源</option>
                   {sources.map(s => (
@@ -684,7 +697,7 @@ function SearchPageClient() {
               </div>
 
               {/* 搜索框 */}
-              <div className='relative flex-1 w-full'>
+              <div className='relative flex-1 h-full w-full z-10'>
                 <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500' />
                 <input
                   id='searchInput'
@@ -694,7 +707,7 @@ function SearchPageClient() {
                   onFocus={handleInputFocus}
                   placeholder='搜索电影、电视剧...'
                   autoComplete="off"
-                  className='w-full h-12 rounded-lg bg-gray-50/80 py-3 pl-10 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white border border-gray-200/50 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 dark:focus:bg-gray-700 dark:border-gray-700'
+                  className='w-full h-full bg-transparent py-0 pl-10 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none dark:text-gray-300 dark:placeholder-gray-500'
                 />
 
                 {/* 清除按钮 */}
@@ -714,19 +727,21 @@ function SearchPageClient() {
                 )}
 
                 {/* 搜索建议 */}
-                <SearchSuggestions
-                  query={searchQuery}
-                  isVisible={showSuggestions}
-                  onSelect={handleSuggestionSelect}
-                  onClose={() => setShowSuggestions(false)}
-                  onEnterKey={() => {
-                    const trimmed = searchQuery.trim().replace(/\s+/g, ' ');
-                    if (!trimmed) return;
-                    setSearchQuery(trimmed);
-                    setShowSuggestions(false);
-                    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
-                  }}
-                />
+                <div className="absolute top-full left-0 right-0">
+                  <SearchSuggestions
+                    query={searchQuery}
+                    isVisible={showSuggestions}
+                    onSelect={handleSuggestionSelect}
+                    onClose={() => setShowSuggestions(false)}
+                    onEnterKey={() => {
+                      const trimmed = searchQuery.trim().replace(/\s+/g, ' ');
+                      if (!trimmed) return;
+                      setSearchQuery(trimmed);
+                      setShowSuggestions(false);
+                      router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </form>
