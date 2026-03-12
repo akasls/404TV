@@ -1415,6 +1415,17 @@ const DraggableRow = ({
       >
         {source.detail || '-'}
       </td>
+      <td className='px-3 py-4 whitespace-nowrap'>
+        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+          source.group === 'adult' 
+            ? 'bg-pink-100 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300' 
+            : source.group === 'view'
+              ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+        }`}>
+          {source.group === 'adult' ? '成人组' : source.group === 'view' ? '观影组' : '未分配'}
+        </span>
+      </td>
       <td className='px-3 py-4 whitespace-nowrap max-w-[1rem]'>
         <button
           onClick={() => handleToggleEnable(source.key)}
@@ -1486,6 +1497,8 @@ const VideoSourceConfig = ({
 }) => {
   const { alertModal, showAlert, hideAlert } = useAlertModal();
   const { isLoading, withLoading } = useLoadingState();
+  const [filterGroup, setFilterGroup] = useState<'all' | 'view' | 'adult' | 'none'>('all');
+  const [showBatchGroupModal, setShowBatchGroupModal] = useState(false);
   const [sources, setSources] = useState<DataSource[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [orderChanged, setOrderChanged] = useState(false);
@@ -1506,10 +1519,25 @@ const VideoSourceConfig = ({
     new Set()
   );
 
-  // 使用 useMemo 计算全选状态，避免每次渲染都重新计算
+  // ======= 过滤数据 =======
+  const filteredSources = useMemo(() => {
+    switch (filterGroup) {
+      case 'view':
+        return sources.filter(s => s.group === 'view');
+      case 'adult':
+        return sources.filter(s => s.group === 'adult');
+      case 'none':
+        return sources.filter(s => !s.group || (s.group !== 'view' && s.group !== 'adult'));
+      case 'all':
+      default:
+        return sources;
+    }
+  }, [sources, filterGroup]);
+
+  // 修改所有对于 sources 渲染的遍历为 filteredSources，但全选相关仍然计算所有可见数据
   const selectAll = useMemo(() => {
-    return selectedSources.size === sources.length && selectedSources.size > 0;
-  }, [selectedSources.size, sources.length]);
+    return selectedSources.size === filteredSources.length && selectedSources.size > 0;
+  }, [selectedSources.size, filteredSources.length]);
 
   // 确认弹窗状态
   const [confirmModal, setConfirmModal] = useState<{
@@ -1864,13 +1892,13 @@ const VideoSourceConfig = ({
   const handleSelectAll = useCallback(
     (checked: boolean) => {
       if (checked) {
-        const allKeys = sources.map((s) => s.key);
-        setSelectedSources(new Set(allKeys));
+        const currentKeys = filteredSources.map((s) => s.key);
+        setSelectedSources(new Set(currentKeys));
       } else {
         setSelectedSources(new Set());
       }
     },
-    [sources]
+    [filteredSources]
   );
 
   // 单个选择
@@ -1889,7 +1917,7 @@ const VideoSourceConfig = ({
   // 批量操作
   const handleBatchOperation = async (
     action: 'batch_enable' | 'batch_disable' | 'batch_delete' | 'batch_set_group',
-    group?: 'view' | 'adult'
+    group?: 'view' | 'adult' | 'none'
   ) => {
     if (selectedSources.size === 0) {
       showAlert({
@@ -1918,7 +1946,7 @@ const VideoSourceConfig = ({
         actionName = '批量删除';
         break;
       case 'batch_set_group':
-        confirmMessage = `确定要把选中的 ${keys.length} 个视频源归入 ${group === 'view' ? '观影组' : '成人组'} 吗？`;
+        confirmMessage = `确定要把选中的 ${keys.length} 个视频源归入 ${group === 'view' ? '观影组' : group === 'adult' ? '成人组' : '未分配分组'} 吗？`;
         actionName = '批量分组';
         break;
     }
@@ -1980,9 +2008,21 @@ const VideoSourceConfig = ({
     <div className='space-y-6'>
       {/* 添加视频源表单 */}
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
-        <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-          视频源列表
-        </h4>
+        <div className='flex items-center gap-2 mb-2 sm:mb-0'>
+          <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap'>
+            视频源列表
+          </h4>
+          <select
+            value={filterGroup}
+            onChange={(e) => setFilterGroup(e.target.value as any)}
+            className='ml-2 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:ring-1 focus:ring-blue-500'
+          >
+            <option value='all'>显示全部</option>
+            <option value='view'>观影组</option>
+            <option value='adult'>成人组</option>
+            <option value='none'>未分配分组</option>
+          </select>
+        </div>
         <div className='flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2'>
           {/* 批量操作按钮 - 移动端显示在下一行，PC端显示在左侧 */}
           {selectedSources.size > 0 && (
@@ -2030,26 +2070,12 @@ const VideoSourceConfig = ({
                     ? '删除中...'
                     : '批量删除'}
                 </button>
-                <div className='flex items-center ml-2 border-l pl-2 border-gray-300 dark:border-gray-600 gap-2'>
-                  <select
-                    id="batchGroupSelect"
-                    className="px-2 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md outline-none"
-                    aria-label="选择分组"
-                  >
-                    <option value="view">观影组</option>
-                    <option value="adult">成人组</option>
-                  </select>
-                  <button
-                    onClick={() => {
-                      const el = document.getElementById('batchGroupSelect') as HTMLSelectElement;
-                      if (el) handleBatchOperation('batch_set_group', el.value as 'view' | 'adult');
-                    }}
-                    disabled={isLoading('batchSource_batch_set_group')}
-                    className={`px-3 py-1 text-sm ${isLoading('batchSource_batch_set_group') ? buttonStyles.disabled : buttonStyles.primary}`}
-                  >
-                    批量分组
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowBatchGroupModal(true)}
+                  className={`px-3 py-1 text-sm ${buttonStyles.primary}`}
+                >
+                  批量分组
+                </button>
               </div>
               <div className='hidden sm:block w-px h-6 bg-gray-300 dark:bg-gray-600 order-2'></div>
             </>
@@ -2294,6 +2320,9 @@ const VideoSourceConfig = ({
                 Detail 地址
               </th>
               <th className='px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+                分组
+              </th>
+              <th className='px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                 状态
               </th>
               <th className='px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
@@ -2316,7 +2345,7 @@ const VideoSourceConfig = ({
               strategy={verticalListSortingStrategy}
             >
               <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
-                {sources.map((source) => (
+                {filteredSources.map((source) => (
                   <DraggableRow
                     key={source.key}
                     source={source}
@@ -2345,7 +2374,7 @@ const VideoSourceConfig = ({
       </div>
 
       {/* 保存排序按钮 */}
-      {orderChanged && (
+      {orderChanged && filterGroup === 'all' && (
         <div className='flex justify-end'>
           <button
             onClick={handleSaveOrder}
@@ -2357,6 +2386,12 @@ const VideoSourceConfig = ({
           >
             {isLoading('saveSourceOrder') ? '保存中...' : '保存排序'}
           </button>
+        </div>
+      )}
+      
+      {orderChanged && filterGroup !== 'all' && (
+        <div className='flex justify-end text-sm text-yellow-600 dark:text-yellow-400 mb-2'>
+          注: 当前处于筛选模式，拖拽改变的排序无法保存，请在"显示全部"模式下保存排序。
         </div>
       )}
 
@@ -2492,6 +2527,116 @@ const VideoSourceConfig = ({
                       isLoading('batchSource_batch_delete')
                       ? '操作中...'
                       : '确认'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* 独立批量分组弹窗 */}
+      {showBatchGroupModal &&
+        createPortal(
+          <div
+            className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'
+            onClick={() => setShowBatchGroupModal(false)}
+          >
+            <div
+              className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className='p-6'>
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100'>
+                    选择目标分组
+                  </h3>
+                  <button
+                    onClick={() => setShowBatchGroupModal(false)}
+                    className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
+                  >
+                    <svg
+                      className='w-5 h-5'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M6 18L18 6M6 6l12 12'
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className='mb-6 space-y-3'>
+                  <p className='text-sm text-gray-600 dark:text-gray-400 mb-2'>
+                    将已选择的 {selectedSources.size} 个视频源移动至：
+                  </p>
+                  <label className='flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 group'>
+                    <input
+                      type='radio'
+                      name='batchGroup'
+                      value='view'
+                      defaultChecked
+                      className='w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500'
+                      id="batchOptionView"
+                    />
+                    <span className='ml-3 text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'>
+                      观影组 (普通模式可见)
+                    </span>
+                  </label>
+                  <label className='flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 group'>
+                    <input
+                      type='radio'
+                      name='batchGroup'
+                      value='adult'
+                      className='w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500'
+                      id="batchOptionAdult"
+                    />
+                    <span className='ml-3 text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-pink-600 dark:group-hover:text-pink-400'>
+                      成人组 (仅成人模式可见)
+                    </span>
+                  </label>
+                  <label className='flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 group'>
+                    <input
+                      type='radio'
+                      name='batchGroup'
+                      value='none'
+                      className='w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-500'
+                      id="batchOptionNone"
+                    />
+                    <span className='ml-3 text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-gray-600 dark:group-hover:text-gray-400'>
+                      未分配分组 (都不显示)
+                    </span>
+                  </label>
+                </div>
+
+                <div className='flex justify-end space-x-3'>
+                  <button
+                    onClick={() => setShowBatchGroupModal(false)}
+                    className={`px-4 py-2 text-sm font-medium ${buttonStyles.secondary}`}
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => {
+                      const radioView = document.getElementById('batchOptionView') as HTMLInputElement;
+                      const radioAdult = document.getElementById('batchOptionAdult') as HTMLInputElement;
+                      const radioNone = document.getElementById('batchOptionNone') as HTMLInputElement;
+                      let selectedVal = 'view';
+                      if (radioAdult?.checked) selectedVal = 'adult';
+                      if (radioNone?.checked) selectedVal = 'none';
+                      
+                      handleBatchOperation('batch_set_group', selectedVal as any);
+                      setShowBatchGroupModal(false);
+                    }}
+                    disabled={isLoading('batchSource_batch_set_group')}
+                    className={`px-4 py-2 text-sm font-medium ${isLoading('batchSource_batch_set_group') ? buttonStyles.disabled : buttonStyles.primary}`}
+                  >
+                    {isLoading('batchSource_batch_set_group') ? '操作中...' : '确认移动'}
                   </button>
                 </div>
               </div>

@@ -70,7 +70,7 @@ function HomeClient() {
     };
 
     fetchRecommendData();
-  }, []);
+  }, [isAdultMode]);
 
   const [showAnnouncement, setShowAnnouncement] = useState(false);
 

@@ -26,7 +26,7 @@ export default function AdultDiscover() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
-  const [videos, setVideos] = useState<DoubanItem[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -241,11 +241,11 @@ export default function AdultDiscover() {
                   <VideoCard
                     from='search'
                     source={selectedSource?.key || 'unknown'}
-                    title={item.title}
-                    poster={item.poster}
-                    id={item.id}
-                    rate={item.rate}
-                    year={item.year}
+                    title={item.vod_name || item.title}
+                    poster={item.vod_pic || item.poster}
+                    id={item.vod_id?.toString() || item.id}
+                    rate={item.vod_remarks || item.rate}
+                    year={item.vod_year || item.year}
                   />
                 </div>
               ))}

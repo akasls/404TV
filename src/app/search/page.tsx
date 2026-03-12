@@ -678,21 +678,22 @@ function SearchPageClient() {
         {/* 搜索框 */}
         <div className='mb-8'>
           <form onSubmit={handleSearch} className='max-w-3xl mx-auto'>
-            <div className='flex flex-row items-center relative w-full h-12 rounded-lg bg-gray-50/80 dark:bg-gray-800 border border-gray-200/50 shadow-sm dark:border-gray-700 overflow-visible focus-within:ring-2 focus-within:ring-green-400 focus-within:bg-white dark:focus-within:bg-gray-700 transition-colors z-20'>
+            {/* 搜索框外部容器：增强高度、圆角、背景和辉光动效 */}
+            <div className='flex flex-row items-center relative w-full h-14 rounded-xl bg-white/70 dark:bg-gray-900/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md dark:shadow-black/20 overflow-visible focus-within:ring-2 focus-within:ring-green-500/50 focus-within:border-green-400/50 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all duration-300 z-20'>
               
               {/* Source Selection Dropdown */}
               <div 
-                className='relative flex-shrink-0 h-full border-r border-gray-200 dark:border-gray-700 z-50 flex items-center justify-center'
+                className='relative flex-shrink-0 h-full border-r border-gray-200/50 dark:border-gray-600/50 z-50 flex items-center justify-center bg-gray-50/50 dark:bg-gray-800/50 rounded-l-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors'
                 data-dropdown='source-selector'
               >
                 <div
-                  className='h-full flex items-center px-3 sm:px-4 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 cursor-pointer select-none transition-colors group'
+                  className='h-full flex items-center px-4 sm:px-5 text-sm font-semibold text-gray-700 dark:text-gray-200 cursor-pointer select-none group'
                   onClick={() => setIsSourceDropdownOpen(!isSourceDropdownOpen)}
                 >
-                  <span className="truncate max-w-[5rem] sm:max-w-[7rem]">
+                  <span className="truncate max-w-[6rem] sm:max-w-[8rem] group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                     {selectedSource === 'all' ? '全部资源' : sources.find(s => s.key === selectedSource)?.name || '未知源'}
                   </span>
-                  <ChevronDown className={`ml-1 h-4 w-4 text-gray-400 group-hover:text-green-500 transition-transform duration-200 ${isSourceDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`ml-2 h-4 w-4 text-gray-400 group-hover:text-green-500 transition-transform duration-300 ${isSourceDropdownOpen ? 'rotate-180' : ''}`} />
                 </div>
                 
                 {isSourceDropdownOpen && (
@@ -745,7 +746,7 @@ function SearchPageClient() {
 
               {/* 搜索框 */}
               <div className='relative flex-1 h-full w-full z-10'>
-                <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500' />
+                <Search className='absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500 peer-focus:text-green-500 transition-colors' />
                 <input
                   id='searchInput'
                   type='text'
@@ -754,7 +755,7 @@ function SearchPageClient() {
                   onFocus={handleInputFocus}
                   placeholder='搜索电影、电视剧...'
                   autoComplete="off"
-                  className='w-full h-full bg-transparent py-0 pl-10 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none dark:text-gray-300 dark:placeholder-gray-500'
+                  className='peer w-full h-full bg-transparent py-0 pl-12 pr-12 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-500 rounded-r-xl transition-colors'
                 />
 
                 {/* 清除按钮 */}
@@ -766,10 +767,10 @@ function SearchPageClient() {
                       setShowSuggestions(false);
                       document.getElementById('searchInput')?.focus();
                     }}
-                    className='absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300'
+                    className='absolute right-3 top-1/2 h-8 w-8 -translate-y-1/2 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors dark:text-gray-500 dark:hover:text-gray-300'
                     aria-label='清除搜索内容'
                   >
-                    <X className='h-5 w-5' />
+                    <X className='h-4 w-4' />
                   </button>
                 )}
 

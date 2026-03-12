@@ -11,6 +11,7 @@ import {
   subscribeToDataUpdates,
 } from '@/lib/db.client';
 
+import { useMode } from '@/components/ModeProvider';
 import ScrollableRow from '@/components/ScrollableRow';
 import VideoCard from '@/components/VideoCard';
 
@@ -23,6 +24,7 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
     (PlayRecord & { key: string })[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const { isAdultMode } = useMode();
 
   // 处理播放记录数据更新的函数
   const updatePlayRecords = (allRecords: Record<string, PlayRecord>) => {
@@ -67,7 +69,7 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
     );
 
     return unsubscribe;
-  }, []);
+  }, [isAdultMode]);
 
   // 如果没有播放记录，则不渲染组件
   if (!loading && playRecords.length === 0) {
