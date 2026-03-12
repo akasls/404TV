@@ -9,7 +9,7 @@ interface ModeContextType {
 
 const ModeContext = createContext<ModeContextType>({
   isAdultMode: false,
-  setIsAdultMode: () => {},
+  setIsAdultMode: () => undefined,
 });
 
 export const useMode = () => useContext(ModeContext);
