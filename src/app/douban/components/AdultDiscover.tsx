@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-
-import { DoubanItem } from '@/lib/types';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import VideoCard from '@/components/VideoCard';
+import { DoubanItem } from '@/lib/types';
 
 interface Source {
   key: string;

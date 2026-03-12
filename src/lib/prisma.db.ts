@@ -92,7 +92,7 @@ export class PrismaStorage implements IStorage {
     });
   }
 
-  async getAllPlayRecords(userName: string, isAdult = false): Promise<{ [key: string]: PlayRecord }> {
+  async getAllPlayRecords(userName: string, isAdult: boolean = false): Promise<{ [key: string]: PlayRecord }> {
     const records = await prisma.playRecord.findMany({
       where: { username: userName, isAdult },
     });
@@ -187,7 +187,7 @@ export class PrismaStorage implements IStorage {
     });
   }
 
-  async getAllFavorites(userName: string, isAdult = false): Promise<{ [key: string]: Favorite }> {
+  async getAllFavorites(userName: string, isAdult: boolean = false): Promise<{ [key: string]: Favorite }> {
     const favs = await prisma.favorite.findMany({
       where: { username: userName, isAdult },
     });
@@ -265,7 +265,7 @@ export class PrismaStorage implements IStorage {
     return users.map((u) => u.username);
   }
 
-  async getSearchHistory(userName: string, isAdult = false): Promise<string[]> {
+  async getSearchHistory(userName: string, isAdult: boolean = false): Promise<string[]> {
     const histories = await prisma.searchHistory.findMany({
       where: { username: userName, isAdult },
       orderBy: { updatedAt: 'desc' },
@@ -274,7 +274,7 @@ export class PrismaStorage implements IStorage {
     return histories.map((h) => h.keyword);
   }
 
-  async addSearchHistory(userName: string, keyword: string, isAdult = false): Promise<void> {
+  async addSearchHistory(userName: string, keyword: string, isAdult: boolean = false): Promise<void> {
     await this.ensureUser(userName);
     await prisma.searchHistory.upsert({
       where: {

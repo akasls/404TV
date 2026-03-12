@@ -13,12 +13,11 @@ import { DoubanItem, DoubanResult } from '@/lib/types';
 import CapsuleSwitch from '@/components/CapsuleSwitch';
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import DoubanCustomSelector from '@/components/DoubanCustomSelector';
-import DoubanSelector from '@/components/DoubanSelector';
+import AdultDiscover from './components/AdultDiscover';
 import { useMode } from '@/components/ModeProvider';
+import DoubanSelector from '@/components/DoubanSelector';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
-
-import AdultDiscover from './components/AdultDiscover';
 
 function DoubanPageClient() {
   const router = useRouter();
