@@ -76,11 +76,12 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'add': {
-        const { key, name, api, detail } = body as {
+        const { key, name, api, detail, group } = body as {
           key?: string;
           name?: string;
           api?: string;
           detail?: string;
+          group?: 'view' | 'adult';
         };
         if (!key || !name || !api) {
           return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
@@ -95,15 +96,17 @@ export async function POST(request: NextRequest) {
           detail,
           from: 'custom',
           disabled: false,
+          group: group || 'view',
         });
         break;
       }
       case 'edit': {
-        const { key, name, api, detail } = body as {
+        const { key, name, api, detail, group } = body as {
           key?: string;
           name?: string;
           api?: string;
           detail?: string;
+          group?: 'view' | 'adult';
         };
         if (!key || !name || !api) {
           return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
@@ -116,6 +119,7 @@ export async function POST(request: NextRequest) {
         entry.name = name;
         entry.api = api;
         entry.detail = detail;
+        if (group) entry.group = group;
         break;
       }
       case 'disable': {
@@ -147,16 +151,6 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: '源不存在' }, { status: 404 });
         // 允许删除系统默认源
         adminConfig.SourceConfig.splice(idx, 1);
-
-        // 检查并清理用户组和用户的权限数组
-        // 清理用户组权限
-        if (adminConfig.UserConfig.Tags) {
-          adminConfig.UserConfig.Tags.forEach((tag) => {
-            if (tag.enabledApis) {
-              tag.enabledApis = tag.enabledApis.filter((api) => api !== key);
-            }
-          });
-        }
 
         // 清理用户权限
         adminConfig.UserConfig.Users.forEach((user) => {
@@ -220,19 +214,8 @@ export async function POST(request: NextRequest) {
           }
         });
 
-        // 检查并清理用户组和用户的权限数组
+        // 检查并清理用户的权限数组
         if (keysToDelete.length > 0) {
-          // 清理用户组权限
-          if (adminConfig.UserConfig.Tags) {
-            adminConfig.UserConfig.Tags.forEach((tag) => {
-              if (tag.enabledApis) {
-                tag.enabledApis = tag.enabledApis.filter(
-                  (api) => !keysToDelete.includes(api)
-                );
-              }
-            });
-          }
-
           // 清理用户权限
           adminConfig.UserConfig.Users.forEach((user) => {
             if (user.enabledApis) {

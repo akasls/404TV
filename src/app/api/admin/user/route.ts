@@ -18,9 +18,7 @@ const ACTIONS = [
   'changePassword',
   'deleteUser',
   'updateUserApis',
-  'userGroup',
-  'updateUserGroups',
-  'batchUpdateUserGroups',
+  'toggleAdultEnable',
 ] as const;
 
 export async function POST(request: NextRequest) {
@@ -57,8 +55,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '参数格式错误' }, { status: 400 });
     }
 
-    // 用户组操作和批量操作不需要targetUsername
-    if (!targetUsername && !['userGroup', 'batchUpdateUserGroups'].includes(action)) {
+    // toggleAdultEnable 可能需要 targetUsername
+    if (!targetUsername) {
       return NextResponse.json({ error: '缺少目标用户名' }, { status: 400 });
     }
 
@@ -66,9 +64,7 @@ export async function POST(request: NextRequest) {
       action !== 'changePassword' &&
       action !== 'deleteUser' &&
       action !== 'updateUserApis' &&
-      action !== 'userGroup' &&
-      action !== 'updateUserGroups' &&
-      action !== 'batchUpdateUserGroups' &&
+      action !== 'toggleAdultEnable' &&
       username === targetUsername
     ) {
       return NextResponse.json(
@@ -98,7 +94,7 @@ export async function POST(request: NextRequest) {
     let targetEntry: any = null;
     let isTargetAdmin = false;
 
-    if (!['userGroup', 'batchUpdateUserGroups'].includes(action) && targetUsername) {
+    if (targetUsername) {
       targetEntry = adminConfig.UserConfig.Users.find(
         (u) => u.username === targetUsername
       );
@@ -106,7 +102,7 @@ export async function POST(request: NextRequest) {
       if (
         targetEntry &&
         targetEntry.role === 'owner' &&
-        !['changePassword', 'updateUserApis', 'updateUserGroups'].includes(action)
+        !['changePassword', 'updateUserApis', 'toggleAdultEnable'].includes(action)
       ) {
         return NextResponse.json({ error: '无法操作站长' }, { status: 400 });
       }
@@ -128,19 +124,10 @@ export async function POST(request: NextRequest) {
         }
         await db.registerUser(targetUsername!, targetPassword);
 
-        // 获取用户组信息
-        const { userGroup } = body as { userGroup?: string };
-
-        // 更新配置
         const newUser: any = {
           username: targetUsername!,
           role: 'user',
         };
-
-        // 如果指定了用户组，添加到tags中
-        if (userGroup && userGroup.trim()) {
-          newUser.tags = [userGroup];
-        }
 
         adminConfig.UserConfig.Users.push(newUser);
         targetEntry =
@@ -330,126 +317,23 @@ export async function POST(request: NextRequest) {
 
         break;
       }
-      case 'userGroup': {
-        // 用户组管理操作
-        const { groupAction, groupName, enabledApis } = body as {
-          groupAction: 'add' | 'edit' | 'delete';
-          groupName: string;
-          enabledApis?: string[];
-        };
-
-        if (!adminConfig.UserConfig.Tags) {
-          adminConfig.UserConfig.Tags = [];
-        }
-
-        switch (groupAction) {
-          case 'add': {
-            // 检查用户组是否已存在
-            if (adminConfig.UserConfig.Tags.find(t => t.name === groupName)) {
-              return NextResponse.json({ error: '用户组已存在' }, { status: 400 });
-            }
-            adminConfig.UserConfig.Tags.push({
-              name: groupName,
-              enabledApis: enabledApis || [],
-            });
-            break;
-          }
-          case 'edit': {
-            const groupIndex = adminConfig.UserConfig.Tags.findIndex(t => t.name === groupName);
-            if (groupIndex === -1) {
-              return NextResponse.json({ error: '用户组不存在' }, { status: 404 });
-            }
-            adminConfig.UserConfig.Tags[groupIndex].enabledApis = enabledApis || [];
-            break;
-          }
-          case 'delete': {
-            const groupIndex = adminConfig.UserConfig.Tags.findIndex(t => t.name === groupName);
-            if (groupIndex === -1) {
-              return NextResponse.json({ error: '用户组不存在' }, { status: 404 });
-            }
-
-            // 查找使用该用户组的所有用户
-            const affectedUsers: string[] = [];
-            adminConfig.UserConfig.Users.forEach(user => {
-              if (user.tags && user.tags.includes(groupName)) {
-                affectedUsers.push(user.username);
-                // 从用户的tags中移除该用户组
-                user.tags = user.tags.filter(tag => tag !== groupName);
-                // 如果用户没有其他标签了，删除tags字段
-                if (user.tags.length === 0) {
-                  delete user.tags;
-                }
-              }
-            });
-
-            // 删除用户组
-            adminConfig.UserConfig.Tags.splice(groupIndex, 1);
-
-            // 记录删除操作的影响
-
-
-            break;
-          }
-          default:
-            return NextResponse.json({ error: '未知的用户组操作' }, { status: 400 });
-        }
-        break;
-      }
-      case 'updateUserGroups': {
+      case 'toggleAdultEnable': {
         if (!targetEntry) {
           return NextResponse.json({ error: '目标用户不存在' }, { status: 404 });
         }
 
-        const { userGroups } = body as { userGroups: string[] };
+        const { isAdultEnabled } = body as { isAdultEnabled: boolean };
 
-        // 权限检查：站长可配置所有人的用户组，管理员可配置普通用户和自己的用户组
+        // 权限检查：站长可配置所有人的成人权限，管理员仅可配置普通用户和自己的
         if (
           isTargetAdmin &&
           operatorRole !== 'owner' &&
           username !== targetUsername
         ) {
-          return NextResponse.json({ error: '仅站长可配置其他管理员的用户组' }, { status: 400 });
+          return NextResponse.json({ error: '仅站长可配置其他管理员的成人权限' }, { status: 400 });
         }
 
-        // 更新用户的用户组
-        if (userGroups && userGroups.length > 0) {
-          targetEntry.tags = userGroups;
-        } else {
-          // 如果为空数组或未提供，则删除该字段，表示无用户组
-          delete targetEntry.tags;
-        }
-
-        break;
-      }
-      case 'batchUpdateUserGroups': {
-        const { usernames, userGroups } = body as { usernames: string[]; userGroups: string[] };
-
-        if (!usernames || !Array.isArray(usernames) || usernames.length === 0) {
-          return NextResponse.json({ error: '缺少用户名列表' }, { status: 400 });
-        }
-
-        // 权限检查：站长可批量配置所有人的用户组，管理员只能批量配置普通用户
-        if (operatorRole !== 'owner') {
-          for (const targetUsername of usernames) {
-            const targetUser = adminConfig.UserConfig.Users.find(u => u.username === targetUsername);
-            if (targetUser && targetUser.role === 'admin' && targetUsername !== username) {
-              return NextResponse.json({ error: `管理员无法操作其他管理员 ${targetUsername}` }, { status: 400 });
-            }
-          }
-        }
-
-        // 批量更新用户组
-        for (const targetUsername of usernames) {
-          const targetUser = adminConfig.UserConfig.Users.find(u => u.username === targetUsername);
-          if (targetUser) {
-            if (userGroups && userGroups.length > 0) {
-              targetUser.tags = userGroups;
-            } else {
-              // 如果为空数组或未提供，则删除该字段，表示无用户组
-              delete targetUser.tags;
-            }
-          }
-        }
+        targetEntry.isAdultEnabled = isAdultEnabled;
 
         break;
       }

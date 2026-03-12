@@ -48,6 +48,7 @@ export class PrismaStorage implements IStorage {
       total_time: record.totalTime,
       save_time: record.saveTime,
       search_title: record.searchTitle,
+      isAdult: record.isAdult,
     };
   }
 
@@ -71,6 +72,7 @@ export class PrismaStorage implements IStorage {
         totalTime: record.total_time,
         saveTime: record.save_time,
         searchTitle: record.search_title,
+        isAdult: record.isAdult || false,
       },
       create: {
         username: userName,
@@ -85,13 +87,14 @@ export class PrismaStorage implements IStorage {
         totalTime: record.total_time,
         saveTime: record.save_time,
         searchTitle: record.search_title,
+        isAdult: record.isAdult || false,
       },
     });
   }
 
-  async getAllPlayRecords(userName: string): Promise<{ [key: string]: PlayRecord }> {
+  async getAllPlayRecords(userName: string, isAdult: boolean = false): Promise<{ [key: string]: PlayRecord }> {
     const records = await prisma.playRecord.findMany({
-      where: { username: userName },
+      where: { username: userName, isAdult },
     });
     const result: { [key: string]: PlayRecord } = {};
     for (const record of records) {
@@ -106,6 +109,7 @@ export class PrismaStorage implements IStorage {
         total_time: record.totalTime,
         save_time: record.saveTime,
         search_title: record.searchTitle,
+        isAdult: record.isAdult,
       };
     }
     return result;
@@ -143,6 +147,7 @@ export class PrismaStorage implements IStorage {
       save_time: fav.saveTime,
       search_title: fav.searchTitle,
       origin: fav.origin as 'vod' | 'live' | undefined,
+      isAdult: fav.isAdult,
     };
   }
 
@@ -164,6 +169,7 @@ export class PrismaStorage implements IStorage {
         saveTime: favorite.save_time,
         searchTitle: favorite.search_title,
         origin: favorite.origin,
+        isAdult: favorite.isAdult || false,
       },
       create: {
         username: userName,
@@ -176,13 +182,14 @@ export class PrismaStorage implements IStorage {
         saveTime: favorite.save_time,
         searchTitle: favorite.search_title,
         origin: favorite.origin,
+        isAdult: favorite.isAdult || false,
       },
     });
   }
 
-  async getAllFavorites(userName: string): Promise<{ [key: string]: Favorite }> {
+  async getAllFavorites(userName: string, isAdult: boolean = false): Promise<{ [key: string]: Favorite }> {
     const favs = await prisma.favorite.findMany({
-      where: { username: userName },
+      where: { username: userName, isAdult },
     });
     const result: { [key: string]: Favorite } = {};
     for (const fav of favs) {
@@ -195,6 +202,7 @@ export class PrismaStorage implements IStorage {
         save_time: fav.saveTime,
         search_title: fav.searchTitle,
         origin: fav.origin as 'vod' | 'live' | undefined,
+        isAdult: fav.isAdult,
       };
     }
     return result;
@@ -257,16 +265,16 @@ export class PrismaStorage implements IStorage {
     return users.map((u) => u.username);
   }
 
-  async getSearchHistory(userName: string): Promise<string[]> {
+  async getSearchHistory(userName: string, isAdult: boolean = false): Promise<string[]> {
     const histories = await prisma.searchHistory.findMany({
-      where: { username: userName },
+      where: { username: userName, isAdult },
       orderBy: { updatedAt: 'desc' },
       take: 20,
     });
     return histories.map((h) => h.keyword);
   }
 
-  async addSearchHistory(userName: string, keyword: string): Promise<void> {
+  async addSearchHistory(userName: string, keyword: string, isAdult: boolean = false): Promise<void> {
     await this.ensureUser(userName);
     await prisma.searchHistory.upsert({
       where: {
@@ -275,15 +283,18 @@ export class PrismaStorage implements IStorage {
           keyword,
         },
       },
-      update: {},
+      update: {
+        isAdult,
+      },
       create: {
         username: userName,
         keyword,
+        isAdult,
       },
     });
 
     const all = await prisma.searchHistory.findMany({
-      where: { username: userName },
+      where: { username: userName, isAdult },
       orderBy: { updatedAt: 'desc' },
     });
     if (all.length > 20) {

@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const history = await db.getSearchHistory(authInfo.username);
+    const { searchParams } = new URL(request.url);
+    const isAdult = searchParams.get('adult') === 'true';
+
+    const history = await db.getSearchHistory(authInfo.username, isAdult);
     return NextResponse.json(history, { status: 200 });
   } catch (err) {
     console.error('获取搜索历史失败', err);
@@ -76,6 +79,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const keyword: string = body.keyword?.trim();
+    const isAdult: boolean = body.isAdult === true;
 
     if (!keyword) {
       return NextResponse.json(
@@ -84,10 +88,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await db.addSearchHistory(authInfo.username, keyword);
+    await db.addSearchHistory(authInfo.username, keyword, isAdult);
 
     // 再次获取最新列表，确保客户端与服务端同步
-    const history = await db.getSearchHistory(authInfo.username);
+    const history = await db.getSearchHistory(authInfo.username, isAdult);
     return NextResponse.json(history.slice(0, HISTORY_LIMIT), { status: 200 });
   } catch (err) {
     console.error('添加搜索历史失败', err);

@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
+  const mode = searchParams.get('mode');
+  const isAdultMode = mode === 'adult';
+  const targetSource = searchParams.get('source');
 
   if (!query) {
     return new Response(
@@ -31,7 +34,11 @@ export async function GET(request: NextRequest) {
   }
 
   const config = await getConfig();
-  const apiSites = await getAvailableApiSites(authInfo.username);
+  let apiSites = await getAvailableApiSites(authInfo.username, isAdultMode);
+
+  if (targetSource && targetSource !== 'all') {
+    apiSites = apiSites.filter((s) => s.key === targetSource);
+  }
 
   // 共享状态
   let streamClosed = false;

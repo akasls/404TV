@@ -31,7 +31,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const records = await db.getAllPlayRecords(authInfo.username);
+    const { searchParams } = new URL(request.url);
+    const isAdult = searchParams.get('adult') === 'true';
+
+    const records = await db.getAllPlayRecords(authInfo.username, isAdult);
     return NextResponse.json(records, { status: 200 });
   } catch (err) {
     console.error('获取播放记录失败', err);
@@ -94,6 +97,7 @@ export async function POST(request: NextRequest) {
     const finalRecord = {
       ...record,
       save_time: record.save_time ?? Date.now(),
+      isAdult: record.isAdult || false,
     } as PlayRecord;
 
     await db.savePlayRecord(authInfo.username, source, id, finalRecord);
@@ -133,6 +137,7 @@ export async function DELETE(request: NextRequest) {
     const username = authInfo.username;
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key');
+    const isAdult = searchParams.get('adult') === 'true';
 
     if (key) {
       // 如果提供了 key，删除单条播放记录
@@ -148,7 +153,7 @@ export async function DELETE(request: NextRequest) {
     } else {
       // 未提供 key，则清空全部播放记录
       // 目前 DbManager 没有对应方法，这里直接遍历删除
-      const all = await db.getAllPlayRecords(username);
+      const all = await db.getAllPlayRecords(username, isAdult);
       await Promise.all(
         Object.keys(all).map(async (k) => {
           const [s, i] = k.split('+');

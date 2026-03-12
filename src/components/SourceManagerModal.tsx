@@ -4,6 +4,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 interface Source {
   key: string;
   name: string;
+  group: 'view' | 'adult';
 }
 
 interface SourceManagerModalProps {
@@ -11,11 +12,15 @@ interface SourceManagerModalProps {
   onClose: () => void;
 }
 
+import { useMode } from './ModeProvider';
+
 const SourceManagerModal: React.FC<SourceManagerModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { isAdultMode, setIsAdultMode } = useMode();
   const [sources, setSources] = useState<Source[]>([]);
+  const [isAdultEnabled, setIsAdultEnabled] = useState(false);
   const [enabledKeys, setEnabledKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -35,6 +40,7 @@ const SourceManagerModal: React.FC<SourceManagerModalProps> = ({
           } else {
             setSources(data.allSources || []);
             setEnabledKeys(data.userEnabledKeys || []);
+            setIsAdultEnabled(data.isAdultEnabled || false);
           }
         })
         .catch((err) => {
@@ -61,13 +67,21 @@ const SourceManagerModal: React.FC<SourceManagerModalProps> = ({
     });
   };
 
+  // 当前模式下可见的源
+  const visibleSources = sources.filter(
+    (s) => isAdultMode ? s.group === 'adult' : s.group !== 'adult'
+  );
+
   const handleToggleAll = () => {
-    if (enabledKeys.length === sources.length) {
-      // 已经全部选中，则全部取消
-      setEnabledKeys([]);
+    const visibleKeys = visibleSources.map((s) => s.key);
+    const allVisibleEnabled = visibleKeys.every((k) => enabledKeys.includes(k));
+
+    if (allVisibleEnabled) {
+      // 已经全部选中可见项，则取消全部可见项
+      setEnabledKeys((prev) => prev.filter((k) => !visibleKeys.includes(k)));
     } else {
-      // 否则全部选中
-      setEnabledKeys(sources.map((s) => s.key));
+      // 否则将剩余可见项全部选中
+      setEnabledKeys((prev) => Array.from(new Set([...prev, ...visibleKeys])));
     }
   };
 
@@ -126,13 +140,34 @@ const SourceManagerModal: React.FC<SourceManagerModalProps> = ({
                   as='h3'
                   className='text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 flex justify-between items-center'
                 >
-                  视频源管理
-                  {sources.length > 0 && (
+                  <div>
+                    视频源管理
+                    {isAdultEnabled && (
+                      <div className="mt-2 flex items-center mb-1">
+                        <span className="text-sm text-gray-600 dark:text-gray-400 mr-3">当前模式:</span>
+                        <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                          <button
+                            onClick={() => setIsAdultMode(false)}
+                            className={`px-3 py-1 text-xs rounded-md transition-colors ${!isAdultMode ? 'bg-white text-gray-900 shadow dark:bg-gray-600 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                          >
+                            观影模式
+                          </button>
+                          <button
+                            onClick={() => setIsAdultMode(true)}
+                            className={`px-3 py-1 text-xs rounded-md transition-colors ${isAdultMode ? 'bg-pink-500 text-white shadow dark:bg-pink-600' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+                          >
+                            成人模式
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {visibleSources.length > 0 && (
                     <button
                       onClick={handleToggleAll}
                       className='text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
                     >
-                      {enabledKeys.length === sources.length ? '全部取消' : '全部选择'}
+                      {visibleSources.every((s) => enabledKeys.includes(s.key)) ? '全部取消' : '全部选择'}
                     </button>
                   )}
                 </Dialog.Title>
@@ -148,13 +183,13 @@ const SourceManagerModal: React.FC<SourceManagerModalProps> = ({
                     <div className='flex justify-center items-center py-8'>
                       <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-green-500'></div>
                     </div>
-                  ) : sources.length === 0 ? (
+                  ) : visibleSources.length === 0 ? (
                     <div className='text-center py-8 text-gray-500 dark:text-gray-400'>
                       暂无可用的视频源
                     </div>
                   ) : (
                     <div className='max-h-[400px] overflow-y-auto pr-2 space-y-3'>
-                      {sources.map((source) => (
+                      {visibleSources.map((source) => (
                         <div
                           key={source.key}
                           className='flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer select-none'

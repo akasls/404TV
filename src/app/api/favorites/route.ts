@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key');
+    const isAdult = searchParams.get('adult') === 'true';
 
     // 查询单条收藏
     if (key) {
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 查询全部收藏
-    const favorites = await db.getAllFavorites(authInfo.username);
+    const favorites = await db.getAllFavorites(authInfo.username, isAdult);
     return NextResponse.json(favorites, { status: 200 });
   } catch (err) {
     console.error('获取收藏失败', err);
@@ -127,6 +128,7 @@ export async function POST(request: NextRequest) {
       total_episodes: favorite.total_episodes ?? 1,
       save_time: favorite.save_time ?? Date.now(),
       search_title: favorite.search_title || '',
+      isAdult: favorite.isAdult || false,
     } as Favorite;
 
     await db.saveFavorite(authInfo.username, source, id, finalFavorite);
@@ -172,6 +174,7 @@ export async function DELETE(request: NextRequest) {
     const username = authInfo.username;
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key');
+    const isAdult = searchParams.get('adult') === 'true';
 
     if (key) {
       // 删除单条
@@ -185,7 +188,7 @@ export async function DELETE(request: NextRequest) {
       await db.deleteFavorite(username, source, id);
     } else {
       // 清空全部
-      const all = await db.getAllFavorites(username);
+      const all = await db.getAllFavorites(username, isAdult);
       await Promise.all(
         Object.keys(all).map(async (k) => {
           const [s, i] = k.split('+');

@@ -34,6 +34,7 @@ model PlayRecord {
   totalTime      Float    @map("total_time")
   saveTime       Float    @map("save_time")
   searchTitle    String   @map("search_title")
+  isAdult        Boolean  @default(false) @map("is_adult")
 
   @@unique([username, key])
   @@index([username])
@@ -52,6 +53,7 @@ model Favorite {
   saveTime       Float    @map("save_time")
   searchTitle    String   @map("search_title")
   origin         String?
+  isAdult        Boolean  @default(false) @map("is_adult")
 
   @@unique([username, key])
   @@index([username])
@@ -62,6 +64,7 @@ model SearchHistory {
   username  String
   user      User     @relation(fields: [username], references: [username], onDelete: Cascade)
   keyword   String
+  isAdult   Boolean  @default(false) @map("is_adult")
   updatedAt DateTime @updatedAt
 
   @@unique([username, keyword])

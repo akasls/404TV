@@ -69,9 +69,11 @@ interface UserCacheStore {
 }
 
 // ---- 常量 ----
-const PLAY_RECORDS_KEY = '404tv_play_records';
-const FAVORITES_KEY = '404tv_favorites';
-const SEARCH_HISTORY_KEY = '404tv_search_history';
+export const isAdultMode = () => typeof window !== 'undefined' && localStorage.getItem('404tv_adult_mode') === 'true';
+
+const getPlayRecordsKey = () => isAdultMode() ? '404tv_play_records_adult' : '404tv_play_records';
+const getFavoritesKey = () => isAdultMode() ? '404tv_favorites_adult' : '404tv_favorites';
+const getSearchHistoryKey = () => isAdultMode() ? '404tv_search_history_adult' : '404tv_search_history';
 
 // 缓存相关常量
 const CACHE_PREFIX = '404tv_cache_';
@@ -119,7 +121,7 @@ class HybridCacheManager {
    * 生成用户专属的缓存key
    */
   private getUserCacheKey(username: string): string {
-    return `${CACHE_PREFIX}${username}`;
+    return isAdultMode() ? `${CACHE_PREFIX}${username}_adult` : `${CACHE_PREFIX}${username}`;
   }
 
   /**
@@ -488,7 +490,10 @@ async function fetchWithAuth(
 }
 
 async function fetchFromApi<T>(path: string): Promise<T> {
-  const res = await fetchWithAuth(path);
+  const isAdult = isAdultMode();
+  const sep = path.includes('?') ? '&' : '?';
+  const finalPath = isAdult ? `${path}${sep}adult=true` : path;
+  const res = await fetchWithAuth(finalPath);
   return (await res.json()) as T;
 }
 
@@ -555,7 +560,7 @@ export async function getAllPlayRecords(): Promise<Record<string, PlayRecord>> {
 
   // localstorage 模式
   try {
-    const raw = localStorage.getItem(PLAY_RECORDS_KEY);
+    const raw = localStorage.getItem(getPlayRecordsKey());
     if (!raw) return {};
     return JSON.parse(raw) as Record<string, PlayRecord>;
   } catch (err) {
@@ -597,7 +602,7 @@ export async function savePlayRecord(
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ key, record }),
+        body: JSON.stringify({ key, record: { ...record, isAdult: isAdultMode() } }),
       });
     } catch (err) {
       await handleDatabaseOperationFailure('playRecords', err);
@@ -616,7 +621,7 @@ export async function savePlayRecord(
   try {
     const allRecords = await getAllPlayRecords();
     allRecords[key] = record;
-    localStorage.setItem(PLAY_RECORDS_KEY, JSON.stringify(allRecords));
+    localStorage.setItem(getPlayRecordsKey(), JSON.stringify(allRecords));
     window.dispatchEvent(
       new CustomEvent('playRecordsUpdated', {
         detail: allRecords,
@@ -655,7 +660,8 @@ export async function deletePlayRecord(
 
     // 异步同步到数据库
     try {
-      await fetchWithAuth(`/api/playrecords?key=${encodeURIComponent(key)}`, {
+      const sep = `/api/playrecords?key=${encodeURIComponent(key)}`.includes('?') ? '&' : '?';
+      await fetchWithAuth(`/api/playrecords?key=${encodeURIComponent(key)}${isAdultMode() ? '&adult=true' : ''}`, {
         method: 'DELETE',
       });
     } catch (err) {
@@ -675,7 +681,7 @@ export async function deletePlayRecord(
   try {
     const allRecords = await getAllPlayRecords();
     delete allRecords[key];
-    localStorage.setItem(PLAY_RECORDS_KEY, JSON.stringify(allRecords));
+    localStorage.setItem(getPlayRecordsKey(), JSON.stringify(allRecords));
     window.dispatchEvent(
       new CustomEvent('playRecordsUpdated', {
         detail: allRecords,
@@ -742,7 +748,7 @@ export async function getSearchHistory(): Promise<string[]> {
 
   // localStorage 模式
   try {
-    const raw = localStorage.getItem(SEARCH_HISTORY_KEY);
+    const raw = localStorage.getItem(getSearchHistoryKey());
     if (!raw) return [];
     const arr = JSON.parse(raw) as string[];
     // 仅返回字符串数组
@@ -805,7 +811,7 @@ export async function addSearchHistory(keyword: string): Promise<void> {
     if (newHistory.length > SEARCH_HISTORY_LIMIT) {
       newHistory.length = SEARCH_HISTORY_LIMIT;
     }
-    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(newHistory));
+    localStorage.setItem(getSearchHistoryKey(), JSON.stringify(newHistory));
     window.dispatchEvent(
       new CustomEvent('searchHistoryUpdated', {
         detail: newHistory,
@@ -847,7 +853,7 @@ export async function clearSearchHistory(): Promise<void> {
 
   // localStorage 模式
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(SEARCH_HISTORY_KEY);
+  localStorage.removeItem(getSearchHistoryKey());
   window.dispatchEvent(
     new CustomEvent('searchHistoryUpdated', {
       detail: [],
@@ -897,7 +903,7 @@ export async function deleteSearchHistory(keyword: string): Promise<void> {
   try {
     const history = await getSearchHistory();
     const newHistory = history.filter((k) => k !== trimmed);
-    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(newHistory));
+    localStorage.setItem(getSearchHistoryKey(), JSON.stringify(newHistory));
     window.dispatchEvent(
       new CustomEvent('searchHistoryUpdated', {
         detail: newHistory,
@@ -965,7 +971,7 @@ export async function getAllFavorites(): Promise<Record<string, Favorite>> {
 
   // localStorage 模式
   try {
-    const raw = localStorage.getItem(FAVORITES_KEY);
+    const raw = localStorage.getItem(getFavoritesKey());
     if (!raw) return {};
     return JSON.parse(raw) as Record<string, Favorite>;
   } catch (err) {
@@ -1026,7 +1032,7 @@ export async function saveFavorite(
   try {
     const allFavorites = await getAllFavorites();
     allFavorites[key] = favorite;
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(allFavorites));
+    localStorage.setItem(getFavoritesKey(), JSON.stringify(allFavorites));
     window.dispatchEvent(
       new CustomEvent('favoritesUpdated', {
         detail: allFavorites,
@@ -1085,7 +1091,7 @@ export async function deleteFavorite(
   try {
     const allFavorites = await getAllFavorites();
     delete allFavorites[key];
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(allFavorites));
+    localStorage.setItem(getFavoritesKey(), JSON.stringify(allFavorites));
     window.dispatchEvent(
       new CustomEvent('favoritesUpdated', {
         detail: allFavorites,
@@ -1187,7 +1193,7 @@ export async function clearAllPlayRecords(): Promise<void> {
 
   // localStorage 模式
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(PLAY_RECORDS_KEY);
+  localStorage.removeItem(getPlayRecordsKey());
   window.dispatchEvent(
     new CustomEvent('playRecordsUpdated', {
       detail: {},
@@ -1228,7 +1234,7 @@ export async function clearAllFavorites(): Promise<void> {
 
   // localStorage 模式
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(FAVORITES_KEY);
+  localStorage.removeItem(getFavoritesKey());
   window.dispatchEvent(
     new CustomEvent('favoritesUpdated', {
       detail: {},

@@ -13,6 +13,8 @@ import { DoubanItem, DoubanResult } from '@/lib/types';
 import CapsuleSwitch from '@/components/CapsuleSwitch';
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import DoubanCustomSelector from '@/components/DoubanCustomSelector';
+import AdultDiscover from './components/AdultDiscover';
+import { useMode } from '@/components/ModeProvider';
 import DoubanSelector from '@/components/DoubanSelector';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
@@ -807,9 +809,16 @@ function DoubanPageClient() {
 }
 
 export default function DoubanPage() {
+  const { isAdultMode } = useMode();
   return (
     <Suspense>
-      <DoubanPageClient />
+      {isAdultMode ? (
+        <PageLayout activePath='/douban'>
+          <AdultDiscover />
+        </PageLayout>
+      ) : (
+        <DoubanPageClient />
+      )}
     </Suspense>
   );
 }

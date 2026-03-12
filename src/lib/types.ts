@@ -12,6 +12,7 @@ export interface PlayRecord {
   total_time: number; // 总进度（秒）
   save_time: number; // 记录保存时间（时间戳）
   search_title: string; // 搜索时使用的标题
+  isAdult?: boolean;
 }
 
 // 收藏数据结构
@@ -24,6 +25,7 @@ export interface Favorite {
   save_time: number; // 记录保存时间（时间戳）
   search_title: string; // 搜索时使用的标题
   origin?: 'vod' | 'live';
+  isAdult?: boolean;
 }
 
 // 存储接口
@@ -35,13 +37,13 @@ export interface IStorage {
     key: string,
     record: PlayRecord
   ): Promise<void>;
-  getAllPlayRecords(userName: string): Promise<{ [key: string]: PlayRecord }>;
+  getAllPlayRecords(userName: string, isAdult?: boolean): Promise<{ [key: string]: PlayRecord }>;
   deletePlayRecord(userName: string, key: string): Promise<void>;
 
   // 收藏相关
   getFavorite(userName: string, key: string): Promise<Favorite | null>;
   setFavorite(userName: string, key: string, favorite: Favorite): Promise<void>;
-  getAllFavorites(userName: string): Promise<{ [key: string]: Favorite }>;
+  getAllFavorites(userName: string, isAdult?: boolean): Promise<{ [key: string]: Favorite }>;
   deleteFavorite(userName: string, key: string): Promise<void>;
 
   // 用户相关
@@ -55,8 +57,8 @@ export interface IStorage {
   deleteUser(userName: string): Promise<void>;
 
   // 搜索历史相关
-  getSearchHistory(userName: string): Promise<string[]>;
-  addSearchHistory(userName: string, keyword: string): Promise<void>;
+  getSearchHistory(userName: string, isAdult?: boolean): Promise<string[]>;
+  addSearchHistory(userName: string, keyword: string, isAdult?: boolean): Promise<void>;
   deleteSearchHistory(userName: string, keyword?: string): Promise<void>;
 
   // 用户列表

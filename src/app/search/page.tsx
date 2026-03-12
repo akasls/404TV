@@ -18,8 +18,31 @@ import PageLayout from '@/components/PageLayout';
 import SearchResultFilter, { SearchFilterCategory } from '@/components/SearchResultFilter';
 import SearchSuggestions from '@/components/SearchSuggestions';
 import VideoCard, { VideoCardHandle } from '@/components/VideoCard';
+import { useMode } from '@/components/ModeProvider';
 
 function SearchPageClient() {
+  const { isAdultMode } = useMode();
+  const [sources, setSources] = useState<{ key: string; name: string }[]>([]);
+  const [selectedSource, setSelectedSource] = useState<string>('all');
+
+  // Fetch available sources based on mode
+  useEffect(() => {
+    let active = true;
+    fetch('/api/user/sources')
+      .then(res => res.json())
+      .then(data => {
+        if (!active) return;
+        const enabledKeys = data.userEnabledKeys || [];
+        const modeGroup = isAdultMode ? 'adult' : 'view';
+        const availableSources = (data.allSources || []).filter(
+          (s: any) => s.group === modeGroup && enabledKeys.includes(s.key)
+        );
+        setSources(availableSources);
+      })
+      .catch(console.error);
+    return () => { active = false; };
+  }, [isAdultMode]);
+
   // 搜索历史
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   // 返回顶部按钮显示状态
@@ -445,7 +468,7 @@ function SearchPageClient() {
 
       if (currentFluidSearch) {
         // 流式搜索：打开新的流式连接
-        const es = new EventSource(`/api/search/ws?q=${encodeURIComponent(trimmed)}`);
+        const es = new EventSource(`/api/search/ws?q=${encodeURIComponent(trimmed)}&mode=${isAdultMode ? 'adult' : 'view'}&source=${selectedSource}`);
         eventSourceRef.current = es;
 
         es.onmessage = (event) => {
@@ -529,7 +552,7 @@ function SearchPageClient() {
         };
       } else {
         // 传统搜索：使用普通接口
-        fetch(`/api/search?q=${encodeURIComponent(trimmed)}`)
+        fetch(`/api/search?q=${encodeURIComponent(trimmed)}&mode=${isAdultMode ? 'adult' : 'view'}&source=${selectedSource}`)
           .then(response => response.json())
           .then(data => {
             if (currentQueryRef.current !== trimmed) return;
@@ -693,6 +716,37 @@ function SearchPageClient() {
                 }}
               />
             </div>
+
+            {/* Source Selection Component */}
+            <div className='mt-4 flex flex-wrap items-center gap-2 justify-center'>
+              <span className='text-sm text-gray-500 font-medium dark:text-gray-400'>搜索范围:</span>
+              <button
+                type='button'
+                onClick={() => setSelectedSource('all')}
+                className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors border ${
+                  selectedSource === 'all'
+                    ? 'bg-green-500 text-white border-green-500 shadow-sm'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
+                }`}
+              >
+                全部资源
+              </button>
+              {sources.map(s => (
+                <button
+                  key={s.key}
+                  type='button'
+                  onClick={() => setSelectedSource(s.key)}
+                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors border ${
+                    selectedSource === s.key
+                      ? 'bg-green-500 text-white border-green-500 shadow-sm'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
+                  }`}
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
+
           </form>
         </div>
 

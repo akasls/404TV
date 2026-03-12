@@ -46,6 +46,10 @@ export async function GET(request: Request) {
       code: 200,
       message: 'success',
       list,
+      categories: data.class || [],
+      page: data.page || 1,
+      pagecount: data.pagecount || 0,
+      total: data.total || 0,
     });
   } catch (error: any) {
     console.error('VideoList Proxy Error:', error);

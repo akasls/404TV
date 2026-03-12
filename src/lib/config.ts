@@ -282,7 +282,6 @@ export function configSelfCheck(adminConfig: AdminConfig): AdminConfig {
     role: 'owner',
     banned: false,
     enabledApis: originOwnerCfg?.enabledApis || undefined,
-    tags: originOwnerCfg?.tags || undefined,
   });
 
   // 采集源去重
@@ -333,9 +332,18 @@ export async function getCacheTime(): Promise<number> {
   return config.SiteConfig.SiteInterfaceCacheTime || 7200;
 }
 
-export async function getAvailableApiSites(user?: string): Promise<ApiSite[]> {
+export async function getAvailableApiSites(user?: string, isAdultMode: boolean = false): Promise<ApiSite[]> {
   const config = await getConfig();
-  const allApiSites = config.SourceConfig.filter((s) => !s.disabled);
+  // Filter sources based on group: if isAdultMode is true, only return adult sources. Otherwise return view sources.
+  const allApiSites = config.SourceConfig.filter((s) => {
+    if (s.disabled) return false;
+    if (isAdultMode) {
+      return s.group === 'adult';
+    } else {
+      // Default to view group or undefined group
+      return s.group !== 'adult';
+    }
+  });
 
   if (!user) {
     return allApiSites;
@@ -346,21 +354,8 @@ export async function getAvailableApiSites(user?: string): Promise<ApiSite[]> {
     return allApiSites;
   }
 
-  // 1. 计算管理员赋予该用户的"许可范围" (permitted keys)
-  let permittedKeys: string[] = [];
-  if (userConfig.tags && userConfig.tags.length > 0 && config.UserConfig.Tags) {
-    const tagApis = new Set<string>();
-    userConfig.tags.forEach((tagName) => {
-      const tagConfig = config.UserConfig.Tags?.find((t) => t.name === tagName);
-      if (tagConfig && tagConfig.enabledApis) {
-        tagConfig.enabledApis.forEach((k) => tagApis.add(k));
-      }
-    });
-    permittedKeys = Array.from(tagApis);
-  } else {
-    // 如果没有任何 tags 限制，默认全量开放
-    permittedKeys = allApiSites.map((s) => s.key);
-  }
+  // Without user groups, all users have access to all sources in the requested mode type
+  let permittedKeys = allApiSites.map((s) => s.key);
 
   // 2. 结合用户自己手工开关的状态（必须被 permitted 约束）
   let finalKeys = permittedKeys;

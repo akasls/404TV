@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       (s) => ({
         key: s.key,
         name: s.name,
-        api: s.api,
         detail: s.detail,
+        group: s.group || 'view',
       })
     );
 
@@ -30,27 +30,8 @@ export async function GET(request: NextRequest) {
     );
 
     // 2. 计算管理员赋予该用户的"许可范围" (permitted keys)
-    let permittedKeys: string[] = [];
-    if (
-      userConfig &&
-      userConfig.tags &&
-      userConfig.tags.length > 0 &&
-      config.UserConfig.Tags
-    ) {
-      const tagApis = new Set<string>();
-      userConfig.tags.forEach((tagName) => {
-        const tagConfig = config.UserConfig.Tags?.find(
-          (t) => t.name === tagName
-        );
-        if (tagConfig && tagConfig.enabledApis) {
-          tagConfig.enabledApis.forEach((k) => tagApis.add(k));
-        }
-      });
-      permittedKeys = Array.from(tagApis);
-    } else {
-      // 如果没有任何 tags 限制，默认全量开放
-      permittedKeys = globalSources.map((s) => s.key);
-    }
+    // 如果没有任何用户组限制，默认全量开放
+    const permittedKeys = globalSources.map((s) => s.key);
 
     // 3. 用户实际能看到的 sources 面板只能是 permitted 的子集
     const allSources = globalSources.filter((s) =>
@@ -74,6 +55,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       allSources, // 传给前端列表：仅为该用户允许接触的源
       userEnabledKeys, // 用户开启的源
+      isAdultEnabled: userConfig?.isAdultEnabled || false, // 返回用户是否被赋予成人组权限
     });
   } catch (error) {
     // eslint-disable-next-line no-console
