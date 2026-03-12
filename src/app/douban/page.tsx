@@ -23,6 +23,7 @@ import AdultDiscover from './components/AdultDiscover';
 function DoubanPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAdultMode } = useMode();
   const [doubanData, setDoubanData] = useState<DoubanItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -226,6 +227,7 @@ function DoubanPageClient() {
   // 防抖的数据加载函数
   const loadInitialData = useCallback(async () => {
     // 创建当前参数的快照
+    if (isAdultMode) return;
     const requestSnapshot = {
       type,
       primarySelection,

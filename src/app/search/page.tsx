@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-explicit-any,@typescript-eslint/no-non-null-assertion,no-empty */
 'use client';
 
-import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { startTransition, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -22,6 +22,7 @@ import VideoCard, { VideoCardHandle } from '@/components/VideoCard';
 
 function SearchPageClient() {
   const { isAdultMode } = useMode();
+  const [isSourceDropdownOpen, setIsSourceDropdownOpen] = useState(false);
   const [sources, setSources] = useState<{ key: string; name: string }[]>([]);
   const [selectedSource, setSelectedSource] = useState<string>('all');
 
@@ -680,20 +681,66 @@ function SearchPageClient() {
             <div className='flex flex-row items-center relative w-full h-12 rounded-lg bg-gray-50/80 dark:bg-gray-800 border border-gray-200/50 shadow-sm dark:border-gray-700 overflow-visible focus-within:ring-2 focus-within:ring-green-400 focus-within:bg-white dark:focus-within:bg-gray-700 transition-colors z-20'>
               
               {/* Source Selection Dropdown */}
-              <div className='relative flex-shrink-0 h-full border-r border-gray-200 dark:border-gray-700 z-10'>
-                <select
-                  value={selectedSource}
-                  onChange={handleSourceChange}
-                  className='h-full w-24 sm:w-auto appearance-none bg-transparent pl-3 pr-8 py-0 text-sm text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer'
+              <div 
+                className='relative flex-shrink-0 h-full border-r border-gray-200 dark:border-gray-700 z-50 flex items-center justify-center'
+                data-dropdown='source-selector'
+              >
+                <div
+                  className='h-full flex items-center px-3 sm:px-4 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 cursor-pointer select-none transition-colors group'
+                  onClick={() => setIsSourceDropdownOpen(!isSourceDropdownOpen)}
                 >
-                  <option value='all'>全部资源</option>
-                  {sources.map(s => (
-                    <option key={s.key} value={s.key}>{s.name}</option>
-                  ))}
-                </select>
-                <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400'>
-                  <ChevronDown className='h-4 w-4' />
+                  <span className="truncate max-w-[5rem] sm:max-w-[7rem]">
+                    {selectedSource === 'all' ? '全部资源' : sources.find(s => s.key === selectedSource)?.name || '未知源'}
+                  </span>
+                  <ChevronDown className={`ml-1 h-4 w-4 text-gray-400 group-hover:text-green-500 transition-transform duration-200 ${isSourceDropdownOpen ? 'rotate-180' : ''}`} />
                 </div>
+                
+                {isSourceDropdownOpen && (
+                  <>
+                    {/* 背景遮罩用于点击外部关闭 */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setIsSourceDropdownOpen(false)}
+                    />
+                    <div className='absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1.5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200'>
+                      <div className="max-h-64 overflow-y-auto overscroll-contain">
+                        <button
+                          type='button'
+                          onClick={() => {
+                            handleSourceChange({ target: { value: 'all' } } as any);
+                            setIsSourceDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between
+                            ${selectedSource === 'all' 
+                              ? 'bg-green-50/50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-medium' 
+                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                            }`}
+                        >
+                          全部资源
+                          {selectedSource === 'all' && <Check className="w-4 h-4" />}
+                        </button>
+                        {sources.map(s => (
+                          <button
+                            key={s.key}
+                            type='button'
+                            onClick={() => {
+                              handleSourceChange({ target: { value: s.key } } as any);
+                              setIsSourceDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between
+                              ${selectedSource === s.key 
+                                ? 'bg-green-50/50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-medium' 
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                              }`}
+                          >
+                            <span className="truncate pr-2">{s.name}</span>
+                            {selectedSource === s.key && <Check className="w-4 h-4 flex-shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* 搜索框 */}

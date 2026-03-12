@@ -3,7 +3,10 @@
 import { Check, ChevronDown, Settings as SettingsIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { useMode } from '@/components/ModeProvider';
+
 export default function LocalSettings() {
+  const { isAdultMode } = useMode();
   const [defaultAggregateSearch, setDefaultAggregateSearch] = useState(true);
   const [doubanProxyUrl, setDoubanProxyUrl] = useState('');
   const [enableOptimization, setEnableOptimization] = useState(true);
@@ -189,103 +192,105 @@ export default function LocalSettings() {
           </div>
         </div>
 
-        <div className='space-y-6'>
-          <div className='relative'>
-            <label className='block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1'>豆瓣数据代理</label>
-            <p className='text-xs text-gray-500 mb-2'>配置获取豆瓣元数据的方式，突破官方请求频率限制。</p>
-            <div className='relative' data-dropdown='douban-datasource'>
-              <button
-                type='button'
-                onClick={() => setIsDoubanDropdownOpen(!isDoubanDropdownOpen)}
-                className='w-full sm:w-[80%] flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-900 dark:text-gray-100 hover:border-green-500 transition-colors'
-              >
-                {doubanDataSourceOptions.find((o) => o.value === doubanDataSource)?.label}
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDoubanDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {isDoubanDropdownOpen && (
-                <div className='absolute z-10 w-full sm:w-[80%] bottom-full mb-1 sm:top-full sm:bottom-auto sm:mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto'>
-                  {doubanDataSourceOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setDoubanDataSource(option.value);
-                        localStorage.setItem('doubanDataSource', option.value);
-                        setIsDoubanDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${doubanDataSource === option.value ? 'text-green-600 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
-                    >
-                      {option.label}
-                      {doubanDataSource === option.value && <Check className='w-4 h-4' />}
-                    </button>
-                  ))}
-                </div>
-              )}
+        {!isAdultMode && (
+          <div className='space-y-6'>
+            <div className='relative'>
+              <label className='block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1'>豆瓣数据代理</label>
+              <p className='text-xs text-gray-500 mb-2'>配置获取豆瓣元数据的方式，突破官方请求频率限制。</p>
+              <div className='relative' data-dropdown='douban-datasource'>
+                <button
+                  type='button'
+                  onClick={() => setIsDoubanDropdownOpen(!isDoubanDropdownOpen)}
+                  className='w-full sm:w-[80%] flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-900 dark:text-gray-100 hover:border-green-500 transition-colors'
+                >
+                  {doubanDataSourceOptions.find((o) => o.value === doubanDataSource)?.label}
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDoubanDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isDoubanDropdownOpen && (
+                  <div className='absolute z-10 w-full sm:w-[80%] bottom-full mb-1 sm:top-full sm:bottom-auto sm:mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto'>
+                    {doubanDataSourceOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setDoubanDataSource(option.value);
+                          localStorage.setItem('doubanDataSource', option.value);
+                          setIsDoubanDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${doubanDataSource === option.value ? 'text-green-600 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
+                      >
+                        {option.label}
+                        {doubanDataSource === option.value && <Check className='w-4 h-4' />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {doubanDataSource === 'custom' && (
+              <div className='w-full sm:w-[80%]'>
+                <input
+                  type='text'
+                  placeholder='https://proxy.example.com/fetch?url='
+                  value={doubanProxyUrl}
+                  onChange={(e) => {
+                    setDoubanProxyUrl(e.target.value);
+                    localStorage.setItem('doubanProxyUrl', e.target.value);
+                  }}
+                  className='w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-green-500 focus:outline-none'
+                />
+              </div>
+            )}
+
+            <div className='relative pt-2'>
+              <label className='block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1'>豆瓣图片代理</label>
+              <p className='text-xs text-gray-500 mb-2'>由于豆瓣图片防盗链限制，需配置图片反代才可正常加载海报。</p>
+              <div className='relative' data-dropdown='douban-image-proxy'>
+                <button
+                  type='button'
+                  onClick={() => setIsDoubanImageProxyDropdownOpen(!isDoubanImageProxyDropdownOpen)}
+                  className='w-full sm:w-[80%] flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-900 dark:text-gray-100 hover:border-green-500 transition-colors'
+                >
+                  {doubanImageProxyTypeOptions.find((o) => o.value === doubanImageProxyType)?.label}
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDoubanImageProxyDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isDoubanImageProxyDropdownOpen && (
+                  <div className='absolute z-10 w-full sm:w-[80%] bottom-full mb-1 sm:top-full sm:bottom-auto sm:mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto'>
+                    {doubanImageProxyTypeOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setDoubanImageProxyType(option.value);
+                          localStorage.setItem('doubanImageProxyType', option.value);
+                          setIsDoubanImageProxyDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${doubanImageProxyType === option.value ? 'text-green-600 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
+                      >
+                        {option.label}
+                        {doubanImageProxyType === option.value && <Check className='w-4 h-4' />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {doubanImageProxyType === 'custom' && (
+              <div className='w-full sm:w-[80%]'>
+                <input
+                  type='text'
+                  placeholder='https://proxy.example.com/fetch?url='
+                  value={doubanImageProxyUrl}
+                  onChange={(e) => {
+                    setDoubanImageProxyUrl(e.target.value);
+                    localStorage.setItem('doubanImageProxyUrl', e.target.value);
+                  }}
+                  className='w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-green-500 focus:outline-none'
+                />
+              </div>
+            )}
           </div>
-
-          {doubanDataSource === 'custom' && (
-            <div className='w-full sm:w-[80%]'>
-              <input
-                type='text'
-                placeholder='https://proxy.example.com/fetch?url='
-                value={doubanProxyUrl}
-                onChange={(e) => {
-                  setDoubanProxyUrl(e.target.value);
-                  localStorage.setItem('doubanProxyUrl', e.target.value);
-                }}
-                className='w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-green-500 focus:outline-none'
-              />
-            </div>
-          )}
-
-          <div className='relative pt-2'>
-            <label className='block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1'>豆瓣图片代理</label>
-            <p className='text-xs text-gray-500 mb-2'>由于豆瓣图片防盗链限制，需配置图片反代才可正常加载海报。</p>
-            <div className='relative' data-dropdown='douban-image-proxy'>
-              <button
-                type='button'
-                onClick={() => setIsDoubanImageProxyDropdownOpen(!isDoubanImageProxyDropdownOpen)}
-                className='w-full sm:w-[80%] flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-900 dark:text-gray-100 hover:border-green-500 transition-colors'
-              >
-                {doubanImageProxyTypeOptions.find((o) => o.value === doubanImageProxyType)?.label}
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDoubanImageProxyDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {isDoubanImageProxyDropdownOpen && (
-                <div className='absolute z-10 w-full sm:w-[80%] bottom-full mb-1 sm:top-full sm:bottom-auto sm:mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto'>
-                  {doubanImageProxyTypeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setDoubanImageProxyType(option.value);
-                        localStorage.setItem('doubanImageProxyType', option.value);
-                        setIsDoubanImageProxyDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${doubanImageProxyType === option.value ? 'text-green-600 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
-                    >
-                      {option.label}
-                      {doubanImageProxyType === option.value && <Check className='w-4 h-4' />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {doubanImageProxyType === 'custom' && (
-            <div className='w-full sm:w-[80%]'>
-              <input
-                type='text'
-                placeholder='https://proxy.example.com/fetch?url='
-                value={doubanImageProxyUrl}
-                onChange={(e) => {
-                  setDoubanImageProxyUrl(e.target.value);
-                  localStorage.setItem('doubanImageProxyUrl', e.target.value);
-                }}
-                className='w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-green-500 focus:outline-none'
-              />
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

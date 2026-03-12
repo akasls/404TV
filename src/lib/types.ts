@@ -59,7 +59,7 @@ export interface IStorage {
   // 搜索历史相关
   getSearchHistory(userName: string, isAdult?: boolean): Promise<string[]>;
   addSearchHistory(userName: string, keyword: string, isAdult?: boolean): Promise<void>;
-  deleteSearchHistory(userName: string, keyword?: string): Promise<void>;
+  deleteSearchHistory(userName: string, keyword?: string, isAdult?: boolean): Promise<void>;
 
   // 用户列表
   getAllUsers(): Promise<string[]>;

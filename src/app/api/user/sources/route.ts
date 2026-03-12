@@ -16,14 +16,14 @@ export async function GET(request: NextRequest) {
     const config = await getConfig();
 
     // 1. 获取全局所有启用的源
-    const globalSources = config.SourceConfig.filter((s) => !s.disabled).map(
-      (s) => ({
+    const globalSources = config.SourceConfig
+      .filter((s) => !s.disabled && (s.group === 'view' || s.group === 'adult'))
+      .map((s) => ({
         key: s.key,
         name: s.name,
         detail: s.detail,
-        group: s.group || 'view',
-      })
-    );
+        group: s.group,
+      }));
 
     const userConfig = config.UserConfig.Users.find(
       (u) => u.username === authInfo.username

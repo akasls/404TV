@@ -138,8 +138,8 @@ export class DbManager {
     await this.storage.addSearchHistory(userName, keyword, isAdult);
   }
 
-  async deleteSearchHistory(userName: string, keyword?: string): Promise<void> {
-    await this.storage.deleteSearchHistory(userName, keyword);
+  async deleteSearchHistory(userName: string, keyword?: string, isAdult = false): Promise<void> {
+    await this.storage.deleteSearchHistory(userName, keyword, isAdult);
   }
 
   // 获取全部用户名

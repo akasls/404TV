@@ -660,7 +660,6 @@ export async function deletePlayRecord(
 
     // 异步同步到数据库
     try {
-      const sep = `/api/playrecords?key=${encodeURIComponent(key)}`.includes('?') ? '&' : '?';
       await fetchWithAuth(`/api/playrecords?key=${encodeURIComponent(key)}${isAdultMode() ? '&adult=true' : ''}`, {
         method: 'DELETE',
       });
@@ -793,7 +792,7 @@ export async function addSearchHistory(keyword: string): Promise<void> {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ keyword: trimmed }),
+        body: JSON.stringify({ keyword: trimmed, isAdult: isAdultMode() }),
       });
     } catch (err) {
       await handleDatabaseOperationFailure('searchHistory', err);
@@ -842,7 +841,8 @@ export async function clearSearchHistory(): Promise<void> {
 
     // 异步同步到数据库
     try {
-      await fetchWithAuth(`/api/searchhistory`, {
+      const qs = isAdultMode() ? '?adult=true' : '';
+      await fetchWithAuth(`/api/searchhistory${qs}`, {
         method: 'DELETE',
       });
     } catch (err) {
@@ -885,8 +885,9 @@ export async function deleteSearchHistory(keyword: string): Promise<void> {
 
     // 异步同步到数据库
     try {
+      const qs = isAdultMode() ? '&adult=true' : '';
       await fetchWithAuth(
-        `/api/searchhistory?keyword=${encodeURIComponent(trimmed)}`,
+        `/api/searchhistory?keyword=${encodeURIComponent(trimmed)}${qs}`,
         {
           method: 'DELETE',
         }
@@ -1013,7 +1014,7 @@ export async function saveFavorite(
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ key, favorite }),
+        body: JSON.stringify({ key, favorite: { ...favorite, isAdult: isAdultMode() } }),
       });
     } catch (err) {
       await handleDatabaseOperationFailure('favorites', err);
@@ -1071,7 +1072,7 @@ export async function deleteFavorite(
 
     // 异步同步到数据库
     try {
-      await fetchWithAuth(`/api/favorites?key=${encodeURIComponent(key)}`, {
+      await fetchWithAuth(`/api/favorites?key=${encodeURIComponent(key)}${isAdultMode() ? '&adult=true' : ''}`, {
         method: 'DELETE',
       });
     } catch (err) {

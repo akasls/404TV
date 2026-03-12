@@ -132,8 +132,9 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const kw = searchParams.get('keyword')?.trim();
+    const isAdult = searchParams.get('adult') === 'true';
 
-    await db.deleteSearchHistory(authInfo.username, kw || undefined);
+    await db.deleteSearchHistory(authInfo.username, kw || undefined, isAdult);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {

@@ -67,7 +67,7 @@ model SearchHistory {
   isAdult   Boolean  @default(false) @map("is_adult")
   updatedAt DateTime @updatedAt
 
-  @@unique([username, keyword])
+  @@unique([username, keyword, isAdult])
   @@index([username])
 }
 

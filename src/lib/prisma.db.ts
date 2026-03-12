@@ -278,9 +278,10 @@ export class PrismaStorage implements IStorage {
     await this.ensureUser(userName);
     await prisma.searchHistory.upsert({
       where: {
-        username_keyword: {
+        username_keyword_isAdult: {
           username: userName,
           keyword,
+          isAdult
         },
       },
       update: {
@@ -305,21 +306,22 @@ export class PrismaStorage implements IStorage {
     }
   }
 
-  async deleteSearchHistory(userName: string, keyword?: string): Promise<void> {
+  async deleteSearchHistory(userName: string, keyword?: string, isAdult = false): Promise<void> {
     if (keyword) {
       try {
         await prisma.searchHistory.delete({
           where: {
-            username_keyword: {
+            username_keyword_isAdult: {
               username: userName,
               keyword,
+              isAdult
             },
           },
         });
       } catch (e) { /* ignore */ }
     } else {
       await prisma.searchHistory.deleteMany({
-        where: { username: userName },
+        where: { username: userName, isAdult },
       });
     }
   }
