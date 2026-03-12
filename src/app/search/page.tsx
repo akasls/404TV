@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-explicit-any,@typescript-eslint/no-non-null-assertion,no-empty */
 'use client';
 
-import { ChevronUp, Search, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { startTransition, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -14,11 +14,11 @@ import {
 } from '@/lib/db.client';
 import { SearchResult } from '@/lib/types';
 
+import { useMode } from '@/components/ModeProvider';
 import PageLayout from '@/components/PageLayout';
 import SearchResultFilter, { SearchFilterCategory } from '@/components/SearchResultFilter';
 import SearchSuggestions from '@/components/SearchSuggestions';
 import VideoCard, { VideoCardHandle } from '@/components/VideoCard';
-import { useMode } from '@/components/ModeProvider';
 
 function SearchPageClient() {
   const { isAdultMode } = useMode();
@@ -582,7 +582,7 @@ function SearchPageClient() {
       setShowResults(false);
       setShowSuggestions(false);
     }
-  }, [searchParams]);
+  }, [searchParams, selectedSource, isAdultMode]);
 
   // 组件卸载时，关闭可能存在的连接
   useEffect(() => {
@@ -626,10 +626,12 @@ function SearchPageClient() {
 
     // 回显搜索框
     setSearchQuery(trimmed);
-    setIsLoading(true);
-    setShowResults(true);
+    // setIsLoading is only set in useEffect now, NO NEED TO DO IT HERE because if identical route it won't update
+    // But since we just added 'selectedSource' to dependencies, changing source WILL trigger search.
+    // What if nothing changed? Then we don't need to be stuck in loading forever.
     setShowSuggestions(false);
 
+    // If query is identical, we can just let it be. But we can push to router anyway.
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
     // 其余由 searchParams 变化的 effect 处理
   };
@@ -637,10 +639,6 @@ function SearchPageClient() {
   const handleSuggestionSelect = (suggestion: string) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
-
-    // 自动执行搜索
-    setIsLoading(true);
-    setShowResults(true);
 
     router.push(`/search?q=${encodeURIComponent(suggestion)}`);
     // 其余由 searchParams 变化的 effect 处理
@@ -665,88 +663,72 @@ function SearchPageClient() {
       <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible mb-10'>
         {/* 搜索框 */}
         <div className='mb-8'>
-          <form onSubmit={handleSearch} className='max-w-2xl mx-auto'>
-            <div className='relative'>
-              <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500' />
-              <input
-                id='searchInput'
-                type='text'
-                value={searchQuery}
-                onChange={handleInputChange}
-                onFocus={handleInputFocus}
-                placeholder='搜索电影、电视剧...'
-                autoComplete="off"
-                className='w-full h-12 rounded-lg bg-gray-50/80 py-3 pl-10 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white border border-gray-200/50 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 dark:focus:bg-gray-700 dark:border-gray-700'
-              />
+          <form onSubmit={handleSearch} className='max-w-3xl mx-auto'>
+            <div className='flex flex-col sm:flex-row items-center gap-2 relative'>
+              
+              {/* Source Selection Dropdown */}
+              <div className='relative w-full sm:w-auto flex-shrink-0'>
+                <select
+                  value={selectedSource}
+                  onChange={(e) => setSelectedSource(e.target.value)}
+                  className='w-full sm:w-auto h-12 appearance-none bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700 rounded-lg pl-3 pr-8 py-3 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm cursor-pointer'
+                >
+                  <option value='all'>全部资源</option>
+                  {sources.map(s => (
+                    <option key={s.key} value={s.key}>{s.name}</option>
+                  ))}
+                </select>
+                <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400'>
+                  <ChevronDown className='h-4 w-4' />
+                </div>
+              </div>
 
-              {/* 清除按钮 */}
-              {searchQuery && (
-                <button
-                  type='button'
-                  onClick={() => {
-                    setSearchQuery('');
+              {/* 搜索框 */}
+              <div className='relative flex-1 w-full'>
+                <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500' />
+                <input
+                  id='searchInput'
+                  type='text'
+                  value={searchQuery}
+                  onChange={handleInputChange}
+                  onFocus={handleInputFocus}
+                  placeholder='搜索电影、电视剧...'
+                  autoComplete="off"
+                  className='w-full h-12 rounded-lg bg-gray-50/80 py-3 pl-10 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white border border-gray-200/50 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 dark:focus:bg-gray-700 dark:border-gray-700'
+                />
+
+                {/* 清除按钮 */}
+                {searchQuery && (
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSuggestions(false);
+                      document.getElementById('searchInput')?.focus();
+                    }}
+                    className='absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300'
+                    aria-label='清除搜索内容'
+                  >
+                    <X className='h-5 w-5' />
+                  </button>
+                )}
+
+                {/* 搜索建议 */}
+                <SearchSuggestions
+                  query={searchQuery}
+                  isVisible={showSuggestions}
+                  onSelect={handleSuggestionSelect}
+                  onClose={() => setShowSuggestions(false)}
+                  onEnterKey={() => {
+                    const trimmed = searchQuery.trim().replace(/\s+/g, ' ');
+                    if (!trimmed) return;
+                    setSearchQuery(trimmed);
                     setShowSuggestions(false);
-                    document.getElementById('searchInput')?.focus();
+                    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
                   }}
-                  className='absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300'
-                  aria-label='清除搜索内容'
-                >
-                  <X className='h-5 w-5' />
-                </button>
-              )}
-
-              {/* 搜索建议 */}
-              <SearchSuggestions
-                query={searchQuery}
-                isVisible={showSuggestions}
-                onSelect={handleSuggestionSelect}
-                onClose={() => setShowSuggestions(false)}
-                onEnterKey={() => {
-                  // 当用户按回车键时，使用搜索框的实际内容进行搜索
-                  const trimmed = searchQuery.trim().replace(/\s+/g, ' ');
-                  if (!trimmed) return;
-
-                  // 回显搜索框
-                  setSearchQuery(trimmed);
-                  setIsLoading(true);
-                  setShowResults(true);
-                  setShowSuggestions(false);
-
-                  router.push(`/search?q=${encodeURIComponent(trimmed)}`);
-                }}
-              />
+                />
+              </div>
             </div>
-
-            {/* Source Selection Component */}
-            <div className='mt-4 flex flex-wrap items-center gap-2 justify-center'>
-              <span className='text-sm text-gray-500 font-medium dark:text-gray-400'>搜索范围:</span>
-              <button
-                type='button'
-                onClick={() => setSelectedSource('all')}
-                className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors border ${
-                  selectedSource === 'all'
-                    ? 'bg-green-500 text-white border-green-500 shadow-sm'
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
-                }`}
-              >
-                全部资源
-              </button>
-              {sources.map(s => (
-                <button
-                  key={s.key}
-                  type='button'
-                  onClick={() => setSelectedSource(s.key)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors border ${
-                    selectedSource === s.key
-                      ? 'bg-green-500 text-white border-green-500 shadow-sm'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
-                  }`}
-                >
-                  {s.name}
-                </button>
-              ))}
-            </div>
-
           </form>
         </div>
 

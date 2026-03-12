@@ -332,7 +332,7 @@ export async function getCacheTime(): Promise<number> {
   return config.SiteConfig.SiteInterfaceCacheTime || 7200;
 }
 
-export async function getAvailableApiSites(user?: string, isAdultMode: boolean = false): Promise<ApiSite[]> {
+export async function getAvailableApiSites(user?: string, isAdultMode = false): Promise<ApiSite[]> {
   const config = await getConfig();
   // Filter sources based on group: if isAdultMode is true, only return adult sources. Otherwise return view sources.
   const allApiSites = config.SourceConfig.filter((s) => {
@@ -355,7 +355,7 @@ export async function getAvailableApiSites(user?: string, isAdultMode: boolean =
   }
 
   // Without user groups, all users have access to all sources in the requested mode type
-  let permittedKeys = allApiSites.map((s) => s.key);
+  const permittedKeys = allApiSites.map((s) => s.key);
 
   // 2. 结合用户自己手工开关的状态（必须被 permitted 约束）
   let finalKeys = permittedKeys;

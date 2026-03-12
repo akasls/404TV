@@ -1,6 +1,6 @@
 'use client';
 
-import { Database, User as UserIcon, Lock } from 'lucide-react';
+import { Database, Lock,User as UserIcon } from 'lucide-react';
 import { useState } from 'react';
 
 interface AuthInfo {

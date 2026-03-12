@@ -301,6 +301,7 @@ interface DataSource {
   detail?: string;
   disabled?: boolean;
   from: 'config' | 'custom';
+  group?: 'view' | 'adult';
 }
 
 // 自定义分类数据类型
@@ -475,6 +476,7 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
   };
 
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleToggleAdultEnabled = async (username: string, enabled: boolean) => {
     try {
       const response = await fetch('/api/admin/user', {
@@ -830,7 +832,7 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
                   scope='col'
                   className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'
                 >
-                  用户组
+                  成人模式
                 </th>
                 <th
                   scope='col'
@@ -937,8 +939,16 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
                         </td>
                         <td className='px-6 py-4 whitespace-nowrap'>
                           <div className='flex items-center space-x-2'>
-
-
+                            <label className='relative inline-flex items-center cursor-pointer'>
+                              <input
+                                type='checkbox'
+                                className='sr-only peer'
+                                checked={!!user.isAdultEnabled}
+                                onChange={(e) => handleToggleAdultEnabled(user.username, e.target.checked)}
+                                disabled={!canOperate}
+                              />
+                              <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            </label>
                           </div>
                         </td>
                         <td className='px-6 py-4 whitespace-nowrap'>
@@ -1365,6 +1375,7 @@ const VideoSourceConfig = ({
     detail: '',
     disabled: false,
     from: 'config',
+    group: 'view',
   });
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingSource, setEditingSource] = useState<DataSource | null>(null);
@@ -1484,6 +1495,7 @@ const VideoSourceConfig = ({
         name: newSource.name,
         api: newSource.api,
         detail: newSource.detail,
+        group: newSource.group || 'view',
       });
       setNewSource({
         name: '',
@@ -1492,6 +1504,7 @@ const VideoSourceConfig = ({
         detail: '',
         disabled: false,
         from: 'custom',
+        group: 'view',
       });
       setShowAddForm(false);
     }).catch(() => {
@@ -1514,6 +1527,7 @@ const VideoSourceConfig = ({
         name: editingSource.name,
         api: editingSource.api,
         detail: editingSource.detail,
+        group: editingSource.group || 'view',
       });
       setEditingSource(null);
       setShowEditForm(false);
@@ -2080,6 +2094,19 @@ const VideoSourceConfig = ({
               }
               className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
             />
+            <select
+              value={newSource.group || 'view'}
+              onChange={(e) =>
+                setNewSource((prev) => ({
+                  ...prev,
+                  group: e.target.value as 'view' | 'adult',
+                }))
+              }
+              className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+            >
+              <option value='view'>观影组</option>
+              <option value='adult'>成人组</option>
+            </select>
           </div>
           <div className='flex justify-end'>
             <button
@@ -2168,6 +2195,20 @@ const VideoSourceConfig = ({
               }
               className='px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
             />
+            <select
+              value={editingSource.group || 'view'}
+              onChange={(e) =>
+                setEditingSource((prev) =>
+                  prev
+                    ? { ...prev, group: e.target.value as 'view' | 'adult' }
+                    : null
+                )
+              }
+              className='px-3 py-2 border border-blue-200 dark:border-blue-800 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+            >
+              <option value='view'>观影组</option>
+              <option value='adult'>成人组</option>
+            </select>
           </div>
           <div className='flex justify-end space-x-2 mt-2'>
             <button
