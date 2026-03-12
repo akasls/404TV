@@ -47,7 +47,7 @@ export class DbManager {
     await this.storage.setPlayRecord(userName, key, record);
   }
 
-  async getAllPlayRecords(userName: string, isAdult: boolean = false): Promise<{
+  async getAllPlayRecords(userName: string, isAdult = false): Promise<{
     [key: string]: PlayRecord;
   }> {
     return this.storage.getAllPlayRecords(userName, isAdult);
@@ -84,7 +84,7 @@ export class DbManager {
 
   async getAllFavorites(
     userName: string,
-    isAdult: boolean = false
+    isAdult = false
   ): Promise<{ [key: string]: Favorite }> {
     return this.storage.getAllFavorites(userName, isAdult);
   }
@@ -130,11 +130,11 @@ export class DbManager {
   }
 
   // ---------- 搜索历史 ----------
-  async getSearchHistory(userName: string, isAdult: boolean = false): Promise<string[]> {
+  async getSearchHistory(userName: string, isAdult = false): Promise<string[]> {
     return this.storage.getSearchHistory(userName, isAdult);
   }
 
-  async addSearchHistory(userName: string, keyword: string, isAdult: boolean = false): Promise<void> {
+  async addSearchHistory(userName: string, keyword: string, isAdult = false): Promise<void> {
     await this.storage.addSearchHistory(userName, keyword, isAdult);
   }
 

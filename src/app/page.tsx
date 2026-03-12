@@ -14,10 +14,10 @@ import { getDoubanCategories } from '@/lib/douban.client';
 import { DoubanItem } from '@/lib/types';
 
 import ContinueWatching from '@/components/ContinueWatching';
+import { useMode } from '@/components/ModeProvider';
 import PageLayout from '@/components/PageLayout';
 import ScrollableRow from '@/components/ScrollableRow';
 import { useSite } from '@/components/SiteProvider';
-import { useMode } from '@/components/ModeProvider';
 import VideoCard from '@/components/VideoCard';
 
 function HomeClient() {
