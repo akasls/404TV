@@ -71,9 +71,21 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
     return unsubscribe;
   }, [isAdultMode]);
 
-  // 如果没有播放记录，则不渲染组件
+  // 如果没有播放记录，显示空状态
   if (!loading && playRecords.length === 0) {
-    return null;
+    return (
+      <section className={`mb-8 ${className || ''}`}>
+        <div className='mb-4 flex items-center justify-between'>
+          <h2 className='text-xl sm:text-2xl font-bold flex items-center text-gray-900 dark:text-white drop-shadow-sm'>
+            <Clock className='w-6 h-6 mr-2 text-green-500' />
+            继续观看
+          </h2>
+        </div>
+        <div className='text-gray-500 py-4 text-sm'>
+          还没看过电影，快去看看吧~
+        </div>
+      </section>
+    );
   }
 
   // 计算播放进度百分比

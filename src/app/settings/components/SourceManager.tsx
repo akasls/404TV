@@ -1,7 +1,7 @@
 'use client';
 
 import { Switch } from '@headlessui/react';
-import { ChevronDown, ChevronRight, MonitorPlay } from 'lucide-react';
+import { MonitorPlay } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface Source {
@@ -19,7 +19,6 @@ export default function SourceManager() {
   const [enabledKeys, setEnabledKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -97,41 +96,22 @@ export default function SourceManager() {
 
   return (
     <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sm:p-8'>
-      <div className={`flex items-center justify-between ${isExpanded ? 'mb-6 pb-4 border-b border-gray-100 dark:border-gray-700' : ''}`}>
-        <div 
-          className='flex items-center gap-2 cursor-pointer select-none group'
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          {isExpanded ? (
-            <ChevronDown className='w-5 h-5 text-gray-400 group-hover:text-green-500 transition-colors' />
-          ) : (
-            <ChevronRight className='w-5 h-5 text-gray-400 group-hover:text-green-500 transition-colors' />
-          )}
-          <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2'>
-            <MonitorPlay className='w-6 h-6 text-green-500' />
-            视频源开关
-          </h3>
-        </div>
-        
-        <div className='flex items-center gap-4'>
+      <div className='flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-gray-700'>
+        <h3 className='text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2'>
+          <MonitorPlay className='w-6 h-6 text-green-500' />
+          视频源管理
           {isAdultEnabled && (
-            <div className="flex items-center">
-              <span className="text-sm font-normal text-gray-600 dark:text-gray-400 mr-2 hidden sm:inline">模式:</span>
+            <div className="ml-4 flex items-center">
+              <span className="text-sm font-normal text-gray-600 dark:text-gray-400 mr-2">模式:</span>
               <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsAdultMode(false);
-                  }}
+                  onClick={() => setIsAdultMode(false)}
                   className={`px-3 py-1 text-xs rounded-md transition-colors ${!isAdultMode ? 'bg-white text-gray-900 shadow dark:bg-gray-600 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   观影
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsAdultMode(true);
-                  }}
+                  onClick={() => setIsAdultMode(true)}
                   className={`px-3 py-1 text-xs rounded-md transition-colors ${isAdultMode ? 'bg-pink-500 text-white shadow dark:bg-pink-600' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
                 >
                   成人
@@ -139,23 +119,8 @@ export default function SourceManager() {
               </div>
             </div>
           )}
-          {isExpanded && visibleSources.length > 0 && !loading && (
-            <button
-              onClick={handleToggleAll}
-              className={`hidden sm:block px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${visibleSources.every(s => enabledKeys.includes(s.key))
-                  ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
-                  : 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
-                }`}
-            >
-              {visibleSources.every(s => enabledKeys.includes(s.key)) ? '全部停用' : '全部启用'}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile view toggle all button */}
-      {isExpanded && visibleSources.length > 0 && !loading && (
-        <div className="mb-4 sm:hidden flex justify-end">
+        </h3>
+        {visibleSources.length > 0 && !loading && (
           <button
             onClick={handleToggleAll}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${visibleSources.every(s => enabledKeys.includes(s.key))
@@ -165,11 +130,10 @@ export default function SourceManager() {
           >
             {visibleSources.every(s => enabledKeys.includes(s.key)) ? '全部停用' : '全部启用'}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {isExpanded && (
-        <div className='space-y-4'>
+      <div className='space-y-4'>
         {error && (
           <div className='mb-4 text-sm text-red-500 bg-red-100/50 dark:bg-red-500/10 p-3 rounded-md'>
             {error}
@@ -216,7 +180,6 @@ export default function SourceManager() {
           </div>
         )}
       </div>
-      )}
     </div>
   );
 }

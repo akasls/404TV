@@ -169,29 +169,11 @@ export default function AdultDiscover() {
       .then((data) => {
         if (!active) return;
         if (data.code === 200) {
-          const list = data.list || [];
-          setVideos((prev) => {
-            const existingIds = new Set(prev.map(v => v.vod_id?.toString() || v.id));
-            const newVids = list.filter((v: any) => !existingIds.has(v.vod_id?.toString() || v.id));
-            
-            if (active) {
-              if (newVids.length === 0 && list.length > 0) {
-                // If API returns a page full of duplicates, stop requesting to avoid infinite loop
-                setTimeout(() => setHasMore(false), 0);
-              } else {
-                setTimeout(() => setHasMore(data.page < data.pagecount && list.length > 0), 0);
-              }
-            }
-            return [...prev, ...newVids];
-          });
-        } else {
-          setHasMore(false);
+          setVideos((prev) => [...prev, ...(data.list || [])]);
+          setHasMore(data.page < data.pagecount);
         }
       })
-      .catch((err) => {
-        console.error(err);
-        if (active) setHasMore(false);
-      })
+      .catch(console.error)
       .finally(() => {
         if (active) setIsLoadingMore(false);
       });
@@ -227,31 +209,29 @@ export default function AdultDiscover() {
       <div className='mb-6 sm:mb-8 bg-white/60 dark:bg-gray-800/40 rounded-2xl p-4 sm:p-6 border border-gray-200/30 dark:border-gray-700/30 backdrop-blur-sm'>
         <div className='flex flex-col sm:flex-row sm:items-center gap-3 mb-4 sm:mb-5'>
           <span className='text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[48px]'>视频源</span>
-          <div className='flex-1 overflow-x-auto whitespace-nowrap scrollbar-hide'>
-            <div className='inline-flex gap-2 pb-1 sm:pb-0'>
-              {loadingSources ? (
-                <div className='flex items-center gap-2 px-2'>
-                  <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-green-500'></div>
-                  <span className='text-sm text-gray-500'>加载中...</span>
-                </div>
-              ) : sources.length === 0 ? (
-                <span className='text-sm text-gray-500'>暂无启用的成人视频源</span>
-              ) : (
-                sources.map(s => (
-                  <button
-                    key={s.key}
-                    onClick={() => setSelectedSource(s)}
-                    className={`flex-shrink-0 px-3 py-1 text-xs sm:text-sm rounded-full transition-colors font-medium border ${
-                      selectedSource?.key === s.key
-                        ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-400 dark:border-green-800/50'
-                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                    }`}
-                  >
-                    {s.name}
-                  </button>
-                ))
-              )}
-            </div>
+          <div className='flex flex-wrap gap-2'>
+            {loadingSources ? (
+              <div className='flex items-center gap-2 px-2'>
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-pink-500'></div>
+                <span className='text-sm text-gray-500'>加载中...</span>
+              </div>
+            ) : sources.length === 0 ? (
+              <span className='text-sm text-gray-500'>暂无启用的成人视频源</span>
+            ) : (
+              sources.map(s => (
+                <button
+                  key={s.key}
+                  onClick={() => setSelectedSource(s)}
+                  className={`px-3 py-1 text-xs sm:text-sm rounded-full transition-colors font-medium border ${
+                    selectedSource?.key === s.key
+                      ? 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/20 dark:text-pink-400 dark:border-pink-800/50'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
+                >
+                  {s.name}
+                </button>
+              ))
+            )}
           </div>
         </div>
 
@@ -297,7 +277,7 @@ export default function AdultDiscover() {
                      }}
                      className={`px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full transition-colors font-medium whitespace-nowrap ${
                        selectedSecondaryId === selectedPrimaryId
-                         ? 'bg-green-100/60 text-green-700 dark:bg-green-500/20 dark:text-green-400 font-bold'
+                         ? 'bg-pink-100/60 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400 font-bold'
                          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                      }`}
                    >
@@ -315,7 +295,7 @@ export default function AdultDiscover() {
                        }}
                        className={`px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full transition-colors font-medium whitespace-nowrap ${
                          selectedSecondaryId === cat.type_id
-                           ? 'bg-green-100/60 text-green-700 dark:bg-green-500/20 dark:text-green-400 font-bold'
+                           ? 'bg-pink-100/60 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400 font-bold'
                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                        }`}
                      >
@@ -357,7 +337,7 @@ export default function AdultDiscover() {
           >
             {isLoadingMore && (
               <div className='flex items-center gap-2'>
-                <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-green-500'></div>
+                <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-pink-500'></div>
                 <span className='text-gray-600'>加载中...</span>
               </div>
             )}

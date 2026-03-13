@@ -77,6 +77,15 @@ export default function SettingsPage() {
             </h1>
           </div>
           <div className='flex items-center gap-2'>
+            {showAdminPanel && (
+              <button
+                onClick={() => setActiveTab(activeTab === 'system' ? 'user' : 'system')}
+                className={`p-2 rounded-full transition-colors ${activeTab === 'system' ? 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                title={activeTab === 'system' ? '返回个人中心' : '管理员设置'}
+              >
+                <Shield className='w-5 h-5' />
+              </button>
+            )}
             <button
               onClick={() => document.documentElement.classList.toggle('dark')}
               className='md:hidden p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'
@@ -120,33 +129,6 @@ export default function SettingsPage() {
         </div>
 
         <div className='flex flex-col space-y-6'>
-          {/* 顶部横向菜单 */}
-          <nav className='flex space-x-2 overflow-x-auto pb-2 scrollbar-hide border-b border-gray-100 dark:border-gray-800'>
-            <button
-              onClick={() => setActiveTab('user')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'user'
-                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                }`}
-            >
-              <UserIcon className='w-5 h-5' />
-              用户信息
-            </button>
-
-            {showAdminPanel && (
-              <button
-                onClick={() => setActiveTab('system')}
-                className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'system'
-                  ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                  }`}
-              >
-                <Shield className='w-5 h-5' />
-                管理员设置
-              </button>
-            )}
-          </nav>
-
           {/* 下部内容区域 */}
           <div className='min-h-[500px]'>
             {activeTab === 'user' && (

@@ -126,13 +126,13 @@ function HomeClient() {
             {!isAdultMode && (
               <>
                 {/* 我的收藏 */}
-                {favoriteItems.length > 0 && (
-                  <section className='mb-8'>
-                    <div className='mb-4 flex items-center justify-between'>
-                      <h2 className='text-xl sm:text-2xl font-bold flex items-center text-gray-900 dark:text-white drop-shadow-sm'>
-                        <Heart className='w-6 h-6 mr-2 text-green-500' />
-                        我的收藏
-                      </h2>
+                <section className='mb-8'>
+                  <div className='mb-4 flex items-center justify-between'>
+                    <h2 className='text-xl sm:text-2xl font-bold flex items-center text-gray-900 dark:text-white drop-shadow-sm'>
+                      <Heart className='w-6 h-6 mr-2 text-green-500' />
+                      我的收藏
+                    </h2>
+                    {favoriteItems.length > 0 && (
                       <button
                         className='text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                         onClick={async () => {
@@ -142,7 +142,9 @@ function HomeClient() {
                       >
                         清空
                       </button>
-                    </div>
+                    )}
+                  </div>
+                  {favoriteItems.length > 0 ? (
                     <ScrollableRow>
                       {favoriteItems.map((item) => (
                         <div
@@ -158,15 +160,19 @@ function HomeClient() {
                         </div>
                       ))}
                     </ScrollableRow>
-                  </section>
-                )}
-
-                {/* 视频源组件 */}
-                <section className='mt-8 mb-8 relative w-full'>
-                  <SourceManager />
+                  ) : (
+                    <div className='text-gray-500 py-4 text-sm'>
+                      暂无收藏
+                    </div>
+                  )}
                 </section>
               </>
             )}
+
+            {/* 视频源组件 - 在两种模式下都显示 */}
+            <section className='mt-8 mb-8 relative w-full'>
+              <SourceManager />
+            </section>
           </>
         </div>
       </div>
