@@ -15,7 +15,6 @@ import PageLayout from '@/components/PageLayout';
 
 // Subcomponents
 import LocalSettings from './components/LocalSettings';
-import SourceManager from './components/SourceManager';
 import SystemSettings from './components/SystemSettings';
 import UserInfo from './components/UserInfo';
 
@@ -24,7 +23,7 @@ interface AuthInfo {
   role?: 'owner' | 'admin' | 'user';
 }
 
-type TabType = 'user' | 'sources' | 'local' | 'system';
+type TabType = 'user' | 'local' | 'system';
 
 export default function SettingsPage() {
   const [authInfo, setAuthInfo] = useState<AuthInfo | null>(null);
@@ -134,28 +133,6 @@ export default function SettingsPage() {
               用户信息
             </button>
 
-            <button
-              onClick={() => setActiveTab('sources')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'sources'
-                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                }`}
-            >
-              <MonitorPlay className='w-5 h-5' />
-              视频源
-            </button>
-
-            <button
-              onClick={() => setActiveTab('local')}
-              className={`flex-shrink-0 px-5 py-3 flex items-center gap-3 text-sm font-medium rounded-t-xl transition-all border-b-2 ${activeTab === 'local'
-                ? 'border-green-500 text-green-600 bg-green-50/50 dark:bg-green-900/10 dark:text-green-400'
-                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
-                }`}
-            >
-              <SettingsIcon className='w-5 h-5' />
-              本地设置
-            </button>
-
             {showAdminPanel && (
               <button
                 onClick={() => setActiveTab('system')}
@@ -179,7 +156,6 @@ export default function SettingsPage() {
                 onLogout={handleLogout}
               />
             )}
-            {activeTab === 'sources' && <SourceManager />}
             {activeTab === 'local' && <LocalSettings />}
             {activeTab === 'system' && showAdminPanel && <SystemSettings />}
           </div>

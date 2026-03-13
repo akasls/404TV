@@ -169,7 +169,11 @@ export default function AdultDiscover() {
       .then((data) => {
         if (!active) return;
         if (data.code === 200) {
-          setVideos((prev) => [...prev, ...(data.list || [])]);
+          setVideos((prev) => {
+            const existingIds = new Set(prev.map(v => v.vod_id?.toString() || v.id));
+            const newVids = (data.list || []).filter((v: any) => !existingIds.has(v.vod_id?.toString() || v.id));
+            return [...prev, ...newVids];
+          });
           setHasMore(data.page < data.pagecount);
         }
       })
@@ -212,7 +216,7 @@ export default function AdultDiscover() {
           <div className='flex flex-wrap gap-2'>
             {loadingSources ? (
               <div className='flex items-center gap-2 px-2'>
-                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-pink-500'></div>
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-green-500'></div>
                 <span className='text-sm text-gray-500'>加载中...</span>
               </div>
             ) : sources.length === 0 ? (
@@ -224,7 +228,7 @@ export default function AdultDiscover() {
                   onClick={() => setSelectedSource(s)}
                   className={`px-3 py-1 text-xs sm:text-sm rounded-full transition-colors font-medium border ${
                     selectedSource?.key === s.key
-                      ? 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/20 dark:text-pink-400 dark:border-pink-800/50'
+                      ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/20 dark:text-green-400 dark:border-green-800/50'
                       : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
                 >
@@ -277,7 +281,7 @@ export default function AdultDiscover() {
                      }}
                      className={`px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full transition-colors font-medium whitespace-nowrap ${
                        selectedSecondaryId === selectedPrimaryId
-                         ? 'bg-pink-100/60 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400 font-bold'
+                         ? 'bg-green-100/60 text-green-700 dark:bg-green-500/20 dark:text-green-400 font-bold'
                          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                      }`}
                    >
@@ -295,7 +299,7 @@ export default function AdultDiscover() {
                        }}
                        className={`px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full transition-colors font-medium whitespace-nowrap ${
                          selectedSecondaryId === cat.type_id
-                           ? 'bg-pink-100/60 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400 font-bold'
+                           ? 'bg-green-100/60 text-green-700 dark:bg-green-500/20 dark:text-green-400 font-bold'
                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                        }`}
                      >
@@ -337,7 +341,7 @@ export default function AdultDiscover() {
           >
             {isLoadingMore && (
               <div className='flex items-center gap-2'>
-                <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-pink-500'></div>
+                <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-green-500'></div>
                 <span className='text-gray-600'>加载中...</span>
               </div>
             )}

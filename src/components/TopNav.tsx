@@ -58,9 +58,8 @@ const TopNav = ({ activePath = '/' }: TopNavProps) => {
 
   const navItems = [
     { icon: Home, label: '首页', href: '/' },
-    { icon: Filter, label: '选片', href: '/douban' },
+    { icon: Filter, label: '选片', href: '/xuanpian' },
     { icon: Search, label: '搜索', href: '/search', onClick: handleSearchClick },
-    { icon: Heart, label: '收藏', href: '/favorites' },
   ];
 
   return (
@@ -77,9 +76,9 @@ const TopNav = ({ activePath = '/' }: TopNavProps) => {
             if (item.href === '/') {
               isActive = active === '/';
             }
-            // 筛选页面 /douban
-            else if (item.href === '/douban') {
-              isActive = active.startsWith('/douban');
+            // 筛选页面 /xuanpian
+            else if (item.href === '/xuanpian') {
+              isActive = active.startsWith('/xuanpian');
             }
             // 搜索、收藏页面
             else {

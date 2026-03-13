@@ -20,9 +20,8 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   const navItems = [
     { icon: Home, label: '首页', href: '/' },
-    { icon: Filter, label: '选片', href: '/douban' },
+    { icon: Filter, label: '选片', href: '/xuanpian' },
     { icon: Search, label: '搜索', href: '/search' },
-    { icon: Heart, label: '收藏', href: '/favorites' },
     { icon: User, label: '我的', href: '/settings' },
   ];
 
@@ -30,7 +29,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
     const decodedActive = decodeURIComponent(currentActive);
 
     if (href === '/') return decodedActive === '/';
-    if (href === '/douban') return decodedActive.startsWith('/douban');
+    if (href === '/xuanpian') return decodedActive.startsWith('/xuanpian');
     return decodedActive.startsWith(href);
   };
 
